@@ -133,35 +133,31 @@
 
 ---
 
-## 六、正式签名与安装
+## 六、下载与安装
 
-**已生成正式签名包**，可直接安装（不是 debug 签名）：
+**最新版本 v1.22**（versionCode 22）· [下载 APK](https://github.com/sansimon2001/CAOJ/releases/latest) · [所有版本](https://github.com/sansimon2001/CAOJ/releases)
+
+打开 Releases 页，在最新一版的 `Assets` 里点 `caoji-v1.22.apk`。
 
 | 项 | 值 |
 |---|---|
-| APK | `app/build/outputs/apk/release/app-release.apk`（桌面副本：`草记-v1.22-正式签名.apk`） |
-| 版本 | versionName **1.22** / versionCode **22** |
-| 签名 | `CN=MindBall, OU=Mobile, O=MindBall Lab, L=Yuyao, ST=Zhejiang, C=CN` |
-| 证书 SHA-256 | `34abf2773df7a1176e28af40c397d104257930d73459a511448800d6273c34ed` |
-| Keystore | `~/keystores/mindball-release.jks`（别名 `mindball`，有效期 100 年）<br>密码不写在仓库里，见 `keystore.properties`（已 gitignore） |
+| 版本 | 1.22（versionCode 22） |
+| 大小 | 约 5.4 MB |
+| 要求 | Android 8.0（API 26）及以上 |
+| 签名 | 正式签名，可直接覆盖升级；每次都同一张证书 |
+
+**安装步骤**
+
+1. 手机上打开下载好的 APK
+2. 提示「禁止安装未知应用」时，按引导到「设置 → 应用 → 特殊权限 → 安装未知应用」允许当前来源，再返回
+3. 点「安装」→「完成」
 
 > ⚠️ **从 v1.1（debug 签名）升级必须先卸载旧版**：签名证书不同，Android 会拒绝覆盖安装。
-> 卸载旧版会清空本地数据（记录存在应用私有数据库里），如需保留请先截图/导出。
+> 卸载会清空本地数据（记录存在应用私有数据库里），如需保留请先在应用内导出备份。
 
-**重新打包命令**
+> 每个版本都会在 Releases 页留档，方便回退到旧版。
 
-```bash
-# 需要 JDK 17 + Android SDK（由 ANDROID_HOME 或 local.properties 指向）
-./gradlew assembleRelease
-# 产物：app/build/outputs/apk/release/app-release.apk
-```
-
-> 签名信息从项目根的 `keystore.properties` 读（该文件不入库，模板见 `keystore.properties.sample`）。
-> 没有它也能编译，release 只是不签名——方便别人 clone 下来先跑通。
-
-> 签名密钥放在**项目目录之外**（`~/keystores/`），密码放在 `keystore.properties`（已进 `.gitignore`）。
-> 这两个东西一旦进仓库就没有回头路：别人可以签出同签名的包，冒充你的应用给已安装用户推更新。
-> **.jks 必须离线备份**（网盘/U盘都行），丢了就再也无法给老用户发升级包，只能让他们卸载重装。
+---
 
 ## 七、编译运行
 
