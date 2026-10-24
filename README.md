@@ -173,11 +173,13 @@
 **重新打包命令**
 
 ```bash
-export JAVA_HOME="/c/Users/simon/Android/jdk-17.0.20.1+1"
-export PATH="$JAVA_HOME/bin:$PATH"
-"/c/Users/simon/Android/gradle-8.7/bin/gradle" assembleRelease --no-daemon
+# 需要 JDK 17 + Android SDK（由 ANDROID_HOME 或 local.properties 指向）
+./gradlew assembleRelease
 # 产物：app/build/outputs/apk/release/app-release.apk
 ```
+
+> 签名信息从项目根的 `keystore.properties` 读（该文件不入库，模板见 `keystore.properties.sample`）。
+> 没有它也能编译，release 只是不签名——方便别人 clone 下来先跑通。
 
 > 签名密钥放在**项目目录之外**（`~/keystores/`），密码放在 `keystore.properties`（已进 `.gitignore`）。
 > 这两个东西一旦进仓库就没有回头路：别人可以签出同签名的包，冒充你的应用给已安装用户推更新。

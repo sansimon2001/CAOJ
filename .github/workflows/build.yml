@@ -31,22 +31,23 @@ jobs:
       - name: 补可执行位
         run: chmod +x ./gradlew
 
-      # 没配 Secrets 时这一步跳过，产出的 APK 是未签名的（仍可下载验证编译是否通过）
+      # 没配 Secrets 时跳过，产出的 APK 是未签名的（仍可验证编译是否通过）
       - name: 还原签名密钥
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_STORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KS_KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            cat > keystore.properties <<EOF
-          storeFile=$RUNNER_TEMP/release.jks
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
-          EOF
-          else
+          if [ -z "$KEYSTORE_BASE64" ]; then
             echo "未配置 KEYSTORE_BASE64，本次产出未签名包"
+            exit 0
           fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # 用 printf 而不是 heredoc：YAML 块标量会吃掉缩进，heredoc 结束符很容易被带偏
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$RUNNER_TEMP/release.jks" "$KS_STORE_PASS" "$KS_ALIAS" "$KS_KEY_PASS" \
+            > keystore.properties
 
       - name: 解析版本号（tag v1.23 → 1.23）
         id: ver
@@ -70,17 +71,19 @@ jobs:
           APK=app/build/outputs/apk/release/app-release.apk
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           if "$BT/apksigner" verify --print-certs "$APK" > /dev/null 2>&1; then
+            echo "签名证书："
             "$BT/apksigner" verify --print-certs "$APK" | grep -E "SHA-256|DN"
-            cp "$APK" "caoji-${GITHUB_REF_NAME:-dev}.apk"
+            cp "$APK" "caoji-${GITHUB_REF_NAME}.apk"
           else
             echo "::warning::APK 未签名（未配置签名 Secrets）"
-            cp "$APK" "caoji-${GITHUB_REF_NAME:-dev}-unsigned.apk"
+            cp "$APK" "caoji-${GITHUB_REF_NAME}-unsigned.apk"
           fi
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ github.ref_name }}
+          # 用 run_number 而不是 ref_name：分支名带 / 时 artifact 名不合法
+          name: apk-${{ github.run_number }}
           path: caoji-*.apk
           if-no-files-found: error
 
@@ -95,4 +98,5 @@ jobs:
             草记 ${{ github.ref_name }}
 
             安装前请确认：本包与已安装版本签名一致，可直接覆盖升级。
-            若手机提示「签名不一致」，说明装的是更早的 debug 签名版本，需先卸载（会清空本地数据，请先导出）。
+            若手机提示「签名不一致」，说明装的是更早的 debug 签名版本，需先卸载
+            （卸载会清空本地数据，请先在应用内导出备份）。

@@ -30,7 +30,19 @@
 
 ## 1. 建仓库并推送
 
-### 方式 A：GitHub CLI（一条命令搞定，推荐）
+### 最快的方式：项目根目录的 `push-to-github.ps1`
+
+在 `MindBall/push-to-github.ps1` 上**右键 → 使用 PowerShell 运行**，它会依次：
+
+1. 检查 `gh`，没有就用 winget 装
+2. 检查登录，没登录就开浏览器让你点授权
+3. 执行 `gh repo create caoji --private --source=. --remote=origin --push`
+
+脚本里 `$visibility` 改成 `"--public"` 就是公开仓库。跑完会自动打开仓库页面。
+
+> 下面两条是手动路径，效果相同，供脚本跑不通时对照排查。
+
+### 方式 A：GitHub CLI（手动，一条命令搞定）
 
 ```bash
 # 安装（Windows，PowerShell）
@@ -40,10 +52,10 @@ winget install --id GitHub.cli
 gh auth login
 
 cd ~/Desktop/MindBall
-gh repo create caoji --public --source=. --remote=origin --push
+gh repo create caoji --private --source=. --remote=origin --push
 ```
 
-`--public` 换成 `--private` 就是私有仓库。仓库名 `caoji` 可按喜好改。
+`--private` 换成 `--public` 就是公开仓库。
 
 ### 方式 B：网页建仓库，手动推
 
@@ -136,6 +148,19 @@ git push && git push origin v1.23
 ---
 
 ## 5. 常见问题
+
+**连不上 github.com（`curl` 返回 502 / 连接超时 / `InternetOpenUrl() failed`）**
+本机如果开了代理软件，先确认它没挂；命令行里 `echo %HTTPS_PROXY%` 若指向一个已经失效的端口，
+`git` 和 `winget` 都会跟着失败。清掉环境变量再试：
+
+```bash
+# Git Bash 临时清掉（只对当前窗口有效）
+unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+curl -I https://github.com
+```
+
+另外注意：**在这台机器上由 AI 助手执行的命令走的是沙箱代理**，即使你自己的终端能上 GitHub，
+助手侧也可能连不上。所以 `gh` 安装和 `git push` 请在你自己开的终端 / PowerShell 里跑。
 
 **推送被拒：`rejected — non-fast-forward`**
 网页建仓时勾了 README/LICENSE，远端已有本地没有的提交。先 `git pull --rebase origin main` 再推。
