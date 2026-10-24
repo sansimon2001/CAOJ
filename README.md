@@ -27,20 +27,6 @@
 | 图标实现 | 自适应图标：`mipmap-anydpi-v26/ic_launcher.xml`（背景 `@color/ic_launcher_bg` + 前景 `drawable/ic_launcher_foreground.xml`），兼容 ColorOS 圆/超椭圆/圆角方遮罩 |
 | 应用内品牌 | 顶栏品牌徽章 `drawable/ic_logo_mark.xml`（v1.22 起为一体化立体徽章：渐变 + 顶光 + 落影，不再套玻璃圆环）+ 应用名 |
 
-字母 C 用「圆环开口」构成：外径 32 / 内径 18（笔画 14），笔画与字高比 0.22，即黑体 Bold 的粗壮度。开口朝右 ±50°。
-
-<p align="center">
-  <img src="docs/icon-mockup.png" width="560" alt="图标在圆形 / 超椭圆 / 圆角方形遮罩下的效果，以及桌面实际尺寸">
-</p>
-
-应用内品牌标（`drawable/ic_logo_mark.xml`，矢量绘制，无位图素材）：
-
-<p align="center">
-  <img src="docs/logo-badge-vector-check.png" width="320" alt="应用内品牌徽章">
-</p>
-
-> 改图标只需改两个文件：`drawable/ic_launcher_foreground.xml`（白色 C 的形状）与 `values/colors.xml` 里的 `ic_launcher_bg`（底色）。
-
 ## 一、先看能力边界（很重要）
 
 | 需求 | 是否可行 | 说明 |
