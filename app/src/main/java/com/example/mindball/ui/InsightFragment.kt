@@ -22,7 +22,7 @@ import com.example.mindball.databinding.FragmentInsightBinding
 import com.example.mindball.util.TimeUtil
 import java.util.Locale
 
-/** 觉察：行为洞察（对应心力球「觉察」页 / O-Mind） */
+/** 觉察：行为洞察 */
 class InsightFragment : Fragment() {
 
     private var _b: FragmentInsightBinding? = null
@@ -53,7 +53,7 @@ class InsightFragment : Fragment() {
         if (!hidden) refresh()
     }
 
-    /** 生成行为复盘报告（对应心力球「觉察」栏的跨记录行为归纳） */
+    /** 生成行为复盘报告（跨记录的行为归纳） */
     private fun generateRetrospect() {
         val ctx = context ?: return
         if (!LlmClient.isConfigured(ctx)) {

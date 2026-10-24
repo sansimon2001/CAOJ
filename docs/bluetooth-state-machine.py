@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""按 Kotlin 里 BluetoothWatcher 的逻辑复刻状态机，用虚拟时钟推演各种断连场景。"""
+"""按 Kotlin 里 BluetoothWatcher 的逻辑复现状态机，用虚拟时钟推演各种断连场景。"""
 
 CONNECT_GRACE = 500     # ms
 DISCONNECT_GRACE = 3000 # ms

@@ -124,13 +124,13 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 长按说话：灵感速记 / 即时问答（对应心力球长按 AI 键） -->
+        <!-- 长按说话：灵感速记 / 即时问答（长按说话） -->
         <activity
             android:name=".ui.QuickVoiceActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 项目详情：洞见卡片 + 主题时间线（对应心力球「项目」栏） -->
+        <!-- 项目详情：洞见卡片 + 主题时间线 -->
         <activity
             android:name=".ui.ProjectDetailActivity"
             android:exported="false" />

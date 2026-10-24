@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 心力球风格记录卡片：类别标签 + 时间 → 标题 → 摘要 → 重点/待办 -->
+<!-- 统一风格记录卡片：类别标签 + 时间 → 标题 → 摘要 → 重点/待办 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

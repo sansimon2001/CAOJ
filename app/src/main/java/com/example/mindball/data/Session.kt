@@ -2,7 +2,7 @@ package com.example.mindball.data
 
 import org.json.JSONArray
 
-/** 一条录音会话（对应心力球的一次「事件」） */
+/** 一条录音会话（一次「事件」） */
 data class Session(
     var id: Long = 0,
     /** 自动生成的标题 */

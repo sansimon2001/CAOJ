@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 120 120">
+  <!-- 草记品牌徽章：由 res/drawable/ic_logo_mark.xml 导出，勿手改 -->
+  <defs>
+    <!-- App 内 VectorDrawable 无 blur，用 4 层同心缩放叠投影；SVG 有滤镜，这里用真模糊。
+         投影必须是独立的一层：若把 filter 挂在板面自己身上，整块板面会被栅格化，
+         渐变会被截断出色带（实测绿色通道会掉到 0 再跳回来） -->
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="170%">
+      <feGaussianBlur stdDeviation="3.4"/>
+    </filter>
+    <linearGradient id="grad0" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="108">
+      <stop offset="0" stop-color="#F0372A"/>
+      <stop offset="0.4" stop-color="#E00111"/>
+      <stop offset="1" stop-color="#98000A"/>
+    </linearGradient>
+    <linearGradient id="grad1" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="108">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.2118"/>
+      <stop offset="0.2" stop-color="#FFFFFF" stop-opacity="0.0863"/>
+      <stop offset="0.36" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="grad2" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="108">
+      <stop offset="0" stop-color="#3A0004" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#3A0004" stop-opacity="0"/>
+      <stop offset="1" stop-color="#3A0004" stop-opacity="0.3059"/>
+    </linearGradient>
+    <linearGradient id="grad3" gradientUnits="userSpaceOnUse" x1="0" y1="8" x2="0" y2="108">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.502"/>
+      <stop offset="0.3" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="0.48" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="#4A0003" fill-opacity="0.52" transform="translate(0 4)" filter="url(#soft)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#grad0)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#grad1)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#grad2)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" stroke="url(#grad3)" fill="#000000" fill-opacity="0" stroke-width="1.6"/>
+    <path d="M78.13,38.80 A28.2,28.2 0 1 0 78.13,82.00 L70.20,72.56 A15.87,15.87 0 1 1 70.20,48.24 Z" fill="#4A0003" fill-opacity="0.2588"/>
+    <path d="M78.13,36.40 A28.2,28.2 0 1 0 78.13,79.60 L70.20,70.16 A15.87,15.87 0 1 1 70.20,45.84 Z" fill="#FFFFFF"/>
+</svg>

@@ -19,12 +19,12 @@ import org.json.JSONObject
  * 可直接对接：DeepSeek、通义千问（兼容模式）、Kimi、OpenAI、硅基流动等。
  * 配置项：llm_base（如 https://api.deepseek.com/v1）、llm_key、llm_model（如 deepseek-chat）
  *
- * 职责（对应心力球「记录之后」的部分）：
+ * 职责（记录之后的部分）：
  * - 生成标题
  * - 结构化摘要：按角色区分（我承诺了什么 / 对方提出了什么），需要转写文本带 [我]/[对方] 标记
  * - 提取待办事项，并解析出到期日（支持「下周五」这类相对时间，按今天日期换算）
  * - 判断归属项目，便于「项目」页做跨场景归集
- * - 行为洞察（对应 O-Mind：沟通习惯、承诺兑现、决策线索）
+ * - 行为洞察（沟通习惯、承诺兑现、决策线索）
  */
 object LlmClient {
 
@@ -419,7 +419,7 @@ ${if (langHint.isNotBlank()) "\n$langHint\n" else ""}
     // ==================== 长按说话：即时问答 ====================
 
     /**
-     * 即时问答（对应心力球「长按 AI 键提问」）
+     * 即时问答（长按说话提问）
      * 用户口述一个问题 → 转写 → 这里直接给出回答，不落库成事件摘要
      */
     fun ask(context: Context, question: String, recentContext: String = ""): Pair<String?, String> {
@@ -445,7 +445,7 @@ ${if (langHint.isNotBlank()) "\n$langHint\n" else ""}
         return chat(context, system, user, maxTokens = 700)
     }
 
-    // ==================== 项目洞见卡片（对应心力球「项目」栏） ====================
+    // ==================== 项目洞见卡片（对应「项目」栏） ====================
 
     /**
      * 基于同一项目的多段记录，生成「洞见卡片」：
@@ -481,7 +481,7 @@ ${if (langHint.isNotBlank()) "\n$langHint\n" else ""}
         return chat(context, system, user, maxTokens = 900)
     }
 
-    // ==================== 觉察：复盘报告（对应心力球「觉察」栏 / O-Mind） ====================
+    // ==================== 觉察：复盘报告（对应「觉察」栏） ====================
 
     /**
      * 跨记录行为复盘：找行为模式、盲区、可改进点

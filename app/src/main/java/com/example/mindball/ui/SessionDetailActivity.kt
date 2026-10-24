@@ -446,7 +446,7 @@ class SessionDetailActivity : AppCompatActivity() {
             }
         }
 
-        // 重点标记时间点（对应心力球「短按打标 → 时间线定位」）
+        // 重点标记时间点（对应「短按打标 → 时间线定位」）
         val marks = parseMarks(s.marks)
         if (marks.isEmpty()) {
             b.tvMarks.visibility = View.GONE

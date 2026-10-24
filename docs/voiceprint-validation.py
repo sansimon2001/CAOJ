@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-声纹算法离线验证：把 MfccScanner + Voiceprint 的算法在 Python 里逐行复刻，
+声纹算法离线验证：把 MfccScanner + Voiceprint 的算法在 Python 里逐行实现，
 用两把可区分的合成嗓音检验「能否把『我』认出来」以及阈值是否合理。
 
 这不是验证 Kotlin 代码本身（编译已通过），而是验证**算法设计与阈值**成立。

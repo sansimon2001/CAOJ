@@ -17,7 +17,7 @@ import com.example.mindball.databinding.FragmentTodayBinding
 import com.example.mindball.util.TimeUtil
 import java.util.Locale
 
-/** 今日：时间线（对应心力球「今日」页） */
+/** 今日：时间线 */
 class TodayFragment : Fragment() {
 
     private var _b: FragmentTodayBinding? = null
@@ -41,7 +41,7 @@ class TodayFragment : Fragment() {
         b.rvSessions.setItemViewCacheSize(8)
         b.rvSessions.adapter = adapter
 
-        // 长按说话：灵感速记 / 即时问答（对应心力球长按 AI 键）
+        // 长按说话：灵感速记 / 即时问答（长按说话）
         b.btnQuickVoice.setOnClickListener {
             startActivity(Intent(requireContext(), QuickVoiceActivity::class.java))
         }
@@ -225,7 +225,7 @@ class TodayFragment : Fragment() {
         adapter.submit(list, counts)
         b.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
 
-        // 日期分组标题（心力球风格：今天 / 10月22日 周四）
+        // 日期分组标题（统一风格：今天 / 10月22日 周四）
         b.tvDateTitle.text = if (isTodayList) "今天" else "最近记录"
         val cal = java.util.Calendar.getInstance()
         val weekNames = arrayOf("周日", "周一", "周二", "周三", "周四", "周五", "周六")

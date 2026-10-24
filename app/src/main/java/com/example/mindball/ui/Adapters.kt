@@ -77,7 +77,7 @@ class SessionAdapter(
                 b.tvSourceTag.setBackgroundResource(R.drawable.bg_tag)
             }
         }
-        // 重点标记：显示处数（对应心力球短按打标）
+        // 重点标记：显示处数（短按打标）
         // 先判空再解析：列表滚动时每行都会走这里，绝大多数记录没有标记，
         // 没必要为一个空字符串去构造 JSONArray（还要包一层异常处理）
         val markCount = if (s.marks.isBlank()) 0 else com.example.mindball.data.parseMarks(s.marks).size

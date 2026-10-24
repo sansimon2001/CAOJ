@@ -490,7 +490,7 @@ object Repo {
         }
     }
 
-    // ==================== 项目洞见（心力球「项目」栏的洞见卡片） ====================
+    // ==================== 项目洞见（洞见卡片） ====================
 
     /** 保存/覆盖某项目的洞见卡片 */
     fun saveProjectInsight(context: Context, project: String, content: String) =

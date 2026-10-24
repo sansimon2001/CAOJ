@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 页标题（心力球风格） -->
+    <!-- 页标题（统一风格） -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

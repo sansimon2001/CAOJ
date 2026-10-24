@@ -103,7 +103,7 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- 洞见卡片（对应心力球「项目」栏的洞见卡片） -->
+            <!-- 洞见卡片（对应「项目」栏的洞见卡片） -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

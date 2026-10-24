@@ -6,7 +6,7 @@
     android:background="@drawable/bg_page_glass"
     android:orientation="vertical">
 
-    <!-- ===== 顶部品牌区：心力球风格（渐变 + 定位语） ===== -->
+    <!-- ===== 顶部品牌区：统一风格（渐变 + 定位语） ===== -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -63,7 +63,7 @@
             android:letterSpacing="0.01" />
     </LinearLayout>
 
-    <!-- ===== 记录状态条（对应心力球隐私灯：工作状态一目了然） ===== -->
+    <!-- ===== 记录状态条（对应隐私灯：工作状态一目了然） ===== -->
     <LinearLayout
         android:id="@+id/llRecordingBar"
         android:layout_width="match_parent"

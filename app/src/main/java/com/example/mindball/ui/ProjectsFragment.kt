@@ -12,7 +12,7 @@ import com.example.mindball.data.Repo
 import com.example.mindball.databinding.FragmentProjectsBinding
 import com.example.mindball.util.TimeUtil
 
-/** 项目：跨场景归集（对应心力球「项目」页） */
+/** 项目：跨场景归集 */
 class ProjectsFragment : Fragment() {
 
     private var _b: FragmentProjectsBinding? = null
@@ -94,7 +94,7 @@ class ProjectsFragment : Fragment() {
             .show()
     }
 
-    /** 打开项目详情：洞见卡片 + 主题时间线（对应心力球「项目」栏） */
+    /** 打开项目详情：洞见卡片 + 主题时间线 */
     private fun showProjectSessions(project: String) {
         startActivity(
             Intent(requireContext(), ProjectDetailActivity::class.java).putExtra("project", project)

@@ -25,7 +25,7 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
- * 项目详情（对应心力球「项目」栏）
+ * 项目详情
  *
  * 两块内容：
  * 1. 洞见卡片：把该项目多段沟通串成「当前进展 / 关键决定 / 卡点风险 / 下一步」
