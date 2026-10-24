@@ -40,8 +40,10 @@ android {
         applicationId = "com.example.mindball"
         minSdk = 26
         targetSdk = 34
-        versionCode = 22
-        versionName = "1.22"
+        // 允许命令行覆盖，CI 打 tag 时用：./gradlew assembleRelease -PversionName=1.23
+        // versionCode 仍需手工递增（商店只认它，必须单调上涨）
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 22
+        versionName = (project.findProperty("versionName") as String?) ?: "1.22"
     }
 
     // 正式签名（密钥与密码在 keystore.properties 里，该项目文件不入库）

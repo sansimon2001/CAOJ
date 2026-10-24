@@ -1,0 +1,98 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 配置 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: 准备 Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Windows 上提交的文件没有可执行位，Linux runner 直接 ./gradlew 会 permission denied
+      - name: 补可执行位
+        run: chmod +x ./gradlew
+
+      # 没配 Secrets 时这一步跳过，产出的 APK 是未签名的（仍可下载验证编译是否通过）
+      - name: 还原签名密钥
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            cat > keystore.properties <<EOF
+          storeFile=$RUNNER_TEMP/release.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+          else
+            echo "未配置 KEYSTORE_BASE64，本次产出未签名包"
+          fi
+
+      - name: 解析版本号（tag v1.23 → 1.23）
+        id: ver
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 构建 Release
+        run: |
+          if [ -n "${{ steps.ver.outputs.name }}" ]; then
+            ./gradlew assembleRelease -PversionName="${{ steps.ver.outputs.name }}" --no-daemon
+          else
+            ./gradlew assembleRelease --no-daemon
+          fi
+
+      - name: 校验签名并改名
+        run: |
+          APK=app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          if "$BT/apksigner" verify --print-certs "$APK" > /dev/null 2>&1; then
+            "$BT/apksigner" verify --print-certs "$APK" | grep -E "SHA-256|DN"
+            cp "$APK" "caoji-${GITHUB_REF_NAME:-dev}.apk"
+          else
+            echo "::warning::APK 未签名（未配置签名 Secrets）"
+            cp "$APK" "caoji-${GITHUB_REF_NAME:-dev}-unsigned.apk"
+          fi
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ github.ref_name }}
+          path: caoji-*.apk
+          if-no-files-found: error
+
+      # 只有打 tag 才自动发 Release，普通 push 只留 artifact
+      - name: 发布 Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: caoji-*.apk
+          generate_release_notes: true
+          body: |
+            草记 ${{ github.ref_name }}
+
+            安装前请确认：本包与已安装版本签名一致，可直接覆盖升级。
+            若手机提示「签名不一致」，说明装的是更早的 debug 签名版本，需先卸载（会清空本地数据，请先导出）。
