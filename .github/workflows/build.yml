@@ -68,9 +68,17 @@ jobs:
 
       - name: 校验签名并改名
         run: |
-          APK=app/build/outputs/apk/release/app-release.apk
-          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          if "$BT/apksigner" verify --print-certs "$APK" > /dev/null 2>&1; then
+          # 未配置签名时 AGP 输出的是 app-release-unsigned.apk，不能硬编码成 app-release.apk
+          APK=$(ls -1 app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            echo "::error::在 app/build/outputs/apk/release/ 下没有找到 APK"
+            ls -R app/build/outputs/apk || true
+            exit 1
+          fi
+          echo "产物：$APK"
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          BT=$(ls -d "$SDK"/build-tools/* 2>/dev/null | sort -V | tail -1)
+          if [ -n "$BT" ] && "$BT/apksigner" verify --print-certs "$APK" > /dev/null 2>&1; then
             echo "签名证书："
             "$BT/apksigner" verify --print-certs "$APK" | grep -E "SHA-256|DN"
             cp "$APK" "caoji-${GITHUB_REF_NAME}.apk"
