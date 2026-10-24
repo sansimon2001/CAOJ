@@ -1,0 +1,18 @@
+# 仓库内统一用 LF，避免 Windows / macOS 之间来回提交时整文件都是换行差异
+* text=auto eol=lf
+
+# Windows 专用脚本必须保留 CRLF，否则 cmd / PowerShell 5.1 会报错
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# 二进制：不要做换行转换，也不要尝试文本 diff
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.jar   binary
+*.jks   binary
+*.keystore binary
+*.mp3   binary
+*.m4a   binary

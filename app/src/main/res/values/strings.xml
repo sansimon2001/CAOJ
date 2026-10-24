@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">草记</string>
+    <string name="tab_today">今日</string>
+    <string name="tab_projects">项目</string>
+    <string name="tab_insight">觉察</string>
+    <string name="tab_settings">设置</string>
+
+    <string name="start_record">开始记录</string>
+    <string name="stop_record">结束记录</string>
+    <string name="headset_connected">耳机已连接</string>
+    <string name="headset_disconnected">耳机未连接</string>
+    <string name="recording_hint">正在记录中，点「标记重点」可打标</string>
+    <string name="idle_hint">连耳机自动开始，也可手动用手机麦克风记录</string>
+
+    <!-- 音源（手动选择手机麦克风 / 蓝牙耳机麦克风） -->
+    <string name="mic_source_title">音源</string>
+    <string name="mic_phone">手机麦克风</string>
+    <string name="mic_bt">蓝牙耳机</string>
+    <string name="empty_today">今天还没有记录\n连上蓝牙耳机会自动开始，也可以手动用手机麦克风记录</string>
+    <string name="empty_projects">还没有项目归集\n记录中提到的项目会自动归入这里</string>
+    <string name="detail_title">记录详情</string>
+    <string name="summary">摘要</string>
+    <string name="transcript">原始转写</string>
+    <string name="retry">重新分析</string>
+    <string name="delete">删除记录</string>
+    <string name="settings_llm">大模型（生成摘要/待办）</string>
+    <string name="settings_asr">语音转写接口</string>
+    <string name="llm_base">接口地址，如 https://api.deepseek.com/v1</string>
+    <string name="llm_key">API Key</string>
+    <string name="llm_model">模型名，如 deepseek-chat</string>
+    <string name="asr_url">转写地址，如 https://api.openai.com/v1/audio/transcriptions</string>
+    <string name="asr_key">转写服务 Key</string>
+    <string name="save">保存配置</string>
+    <string name="auto_record">连接蓝牙耳机自动开始记录</string>
+    <string name="keep_audio">保留原始录音（默认只保留文字）</string>
+    <string name="scan_calls">扫描系统通话录音并导入</string>
+    <string name="call_record_tip">通话与微信语音说明：Android 系统不允许第三方 App 录制通话对端声音，也不允许录制微信语音通话。本应用通过读取手机自带「通话录音」文件来实现通话内容记录；微信语音目前无法获取音频。</string>
+    <string name="settings_speaker">说话人区分（声纹）</string>
+    <string name="asr_diarize">转写时启用说话人分离</string>
+    <string name="my_speaker">我是说话人</string>
+    <string name="speaker_tip">转写服务若支持说话人分离（diarization），会输出带说话人标记的文本；选定「我是说话人几」后，摘要会按「我 / 对方」归纳。不支持时自动降级为纯文本。</string>
+    <!-- 按所选转写服务的真实能力动态切换（见 SettingsFragment.applyAsrCapability） -->
+    <string name="speaker_tip_supported">当前服务会返回带时间戳的说话人分段。选定「我是说话人几」后，摘要按「我 / 对方」归纳；录过声纹后还会自动判断哪几段是你说的。</string>
+    <string name="speaker_tip_plain">当前选的是「%1$s」，它只返回纯文本，不返回说话人分段。因此「说话人分离」与「我是说话人几」都不起作用（本机声纹比对同样依赖分段，也无法自动认出「我」）。需要区分我 / 对方，请改用支持 diarization 的服务，例如自建 WhisperX / faster-whisper。</string>
+    <string name="settings_remind">待办提醒</string>
+    <string name="remind_enable">开启待办到期提醒</string>
+    <string name="remind_hour">每日提醒时间</string>
+    <string name="label_provider">服务商</string>
+    <string name="asr_model">转写模型，如 FunAudioLLM/SenseVoiceSmall</string>
+    <string name="test_conn">测试连接</string>
+    <string name="get_key">去申请 Key</string>
+    <!-- 本人声纹 -->
+    <string name="settings_voiceprint">本人声纹</string>
+    <string name="voiceprint_enable">用声纹自动识别「我」</string>
+    <string name="voiceprint_enroll">录入声纹</string>
+    <string name="voiceprint_enroll_again">重新录入</string>
+    <string name="voiceprint_clear">清除</string>
+    <string name="enroll_title">录入本人声纹</string>
+    <string name="enroll_intro">录一次你自己的声音，之后每次录音 App 会自动判断哪几段是你说的，摘要就能准确区分「我」和「对方」，不用再手动指定「我是说话人几」。\n\n建议：安静环境、手机离嘴 20~30 厘米、用平时说话的语速，录满 15 秒。</string>
+    <string name="enroll_read_hint">请朗读这句话（读完大约 15 秒）</string>
+    <string name="enroll_start">开始录音</string>
+    <string name="enroll_stop">停止并分析</string>
+    <string name="enroll_done">完成</string>
+    <string name="enroll_limit">技术说明：本机用的是 MFCC + 音高统计的轻量声纹模型（无需联网、不上传声音），能区分音色差异明显的两个人；同性别且音色接近的两人可能分不准。为此 App 只在「相似度明显领先」时才自动采用，否则保留你的手动设置并在记录详情里标注「存疑」，不会乱改。声纹数据只存在本机数据库。</string>
+    <!-- 蓝牙耳机连接 -->
+    <string name="bt_mic">用蓝牙耳机麦克风录音（默认音源）</string>
+    <string name="bt_mic_hint">默认关闭，用手机麦克风（44.1kHz，音质更好，且完全不改动蓝牙音频通路，连接最稳）。\n开启后录音会切到耳机麦克风：离嘴更近、远处说话也能听清，但走蓝牙通话通路（音质较低），期间耳机里的音乐会被打断。若发现耳机连接不稳定，请保持关闭。\n\n这里设的是默认音源；「今日」页底部的「手机麦克风 / 蓝牙耳机」可以随时手动切换，录音过程中切换也是立即生效（当前这段会先单独保存）。</string>
+    <!-- 整理导出与系统打通 -->
+    <string name="section_export">整理与分发</string>
+    <string name="export_hint">同一份文稿，可复制、存成 .md 文件、直接转发微信，或存进系统便签</string>
+    <string name="act_copy_all">复制全文</string>
+    <string name="act_export_md">导出文稿</string>
+    <string name="act_share_wechat">转发微信</string>
+    <string name="act_save_notes">存到便签 / 群</string>
+    <string name="act_todo_to_calendar">把待办加入系统日历</string>
+
+    <string name="section_data">整理导出与系统打通</string>
+    <string name="export_today">导出今日记录（Markdown）</string>
+    <string name="export_all">导出全部记录（Markdown）</string>
+    <string name="export_todos">导出待办清单（Markdown）</string>
+    <string name="sync_todos_calendar">把未完成待办同步到系统日历</string>
+    <string name="data_tip">导出为 .md / .txt 文件，可存到手机任意目录，也能用微信、邮件发给别人。\n\n与系统打通的原理：文字通过 Android 标准分享协议（ACTION_SEND）送出去，所以能收文字的应用——微信、OPPO 便签、Keep、印象笔记等——都能接；日历走 CalendarContract，单条待办直接唤起系统日历新建（不需要权限），批量同步需要授权读写日历。\n\n微信没有开放「直接发到某个聊天」的接口，转发时会先到微信的「选择聊天」界面，你点一下联系人才发出。</string>
+
+    <!-- 接入录音设备与 WorkBuddy（v1.17） -->
+    <string name="interop_tip">怎么把别处的录音拿进来（三种都行，任选其一）：\n\n① 直接分享：在钉钉闪记、飞书妙记、微信「文件」里点「分享 → 草记」\n② 先导出再导入：在对方 App 里导出音频或文稿，回来点下面「导入录音或转写稿」\n③ 通话录音：用最下面的「扫描系统通话录音并导入」\n\n支持的音频：m4a / mp3 / wav / aac / amr / ogg / flac / 3gp / mp4；\n支持的文稿：txt / md / srt / vtt / json / docx（钉钉、飞书最常导出的就是这些）。\n\n说明：Android 不允许一个应用直接读另一个应用的私有目录，所以无法「自动抓取」钉钉/飞书里的录音；分享与导入是唯一稳定、也最合规的方式。</string>
+    <string name="import_files">导入录音或转写稿</string>
+    <string name="wb_bind">绑定 WorkBuddy 目录</string>
+    <string name="wb_auto">记录整理完成后自动写入该目录</string>
+    <string name="wb_sync_now">立即同步全部记录</string>
+    <string name="wb_copy">复制最近记录给 WorkBuddy</string>
+    <string name="wb_webhook_hint">Webhook 地址（https://…，可选）</string>
+    <string name="wb_token_hint">Webhook 鉴权 Token（可选）</string>
+    <string name="wb_push">推送最近记录到 Webhook</string>
+
+    <!-- 飞书 / 钉钉群机器人（v1.18） -->
+    <string name="fs_setup_hint">在飞书群里：设置 → 群机器人 → 添加「自定义机器人」→ 复制 Webhook 地址。\n如果打开了「签名校验」（推荐），把密钥一并填进来；不填就只能发到没开校验的群。</string>
+    <string name="dt_setup_hint">在钉钉群里：群设置 → 智能群助手 → 添加机器人「自定义」→ 复制 Webhook。\n安全设置建议选「加签」并把密钥填进来；若选「自定义关键词」，请把关键词设为「草记」，否则钉钉会拒收。</string>
+    <string name="fs_hook_hint">飞书 Webhook（https://open.feishu.cn/open-apis/bot/v2/hook/…）</string>
+    <string name="dt_hook_hint">钉钉 Webhook（https://oapi.dingtalk.com/robot/send?access_token=…）</string>
+    <string name="robot_secret_hint">加签密钥（开了签名校验才需要填）</string>
+    <string name="collab_state_default">未接入。配置后，可以把整理好的摘要与待办一键同步到群里；只发摘要与待办，不发原始逐字稿，避免刷屏与过度外泄。</string>
+    <string name="trademark_notice">商标与关联声明：钉钉、飞书、企业微信、微信、Android 等名称与标识归其各自权利人所有。本应用通过上述平台公开发布的分享协议与群机器人接口接入，属独立第三方工具，与阿里巴巴（中国）有限公司、北京飞书科技有限公司、腾讯控股有限公司等无隶属、合作、代理或背书关系。相关权利人对本应用不作担保，亦不承担任何责任。</string>
+    <string name="copyright_notice">© 2026 草记 · 个人开发者作品\n反馈与合作：sansimon2001@163.com</string>
+
+    <!-- 隐私与安全 -->
+    <string name="section_privacy">隐私与安全</string>
+    <string name="secure_window">禁止截屏与最近任务预览</string>
+    <string name="wipe_data">清除本机全部数据</string>
+    <string name="privacy_tip">数据在哪：录音、转写、摘要、待办全部存在应用私有目录（其他应用读不到），卸载即随应用删除。\n\n加密：API Key 与声纹模板用 Android 系统密钥库（Keystore）的 AES-256-GCM 加密后落库，密钥不随备份导出。\n\n不上传：默认不向任何服务器传数据；只有你配置了转写/大模型接口并处理记录时，才把该段录音或文本发给你自己指定的服务商。接口地址强制 https，明文 HTTP 会被直接拒绝。\n\n备份：已关闭云备份与换机克隆（避免私人录音被系统复制到云端或另一台设备）。换机请用「导出全部记录」。\n\n截屏保护：开启后系统截屏、录屏、投屏拿不到内容，最近任务里也只有空白缩略图。</string>
+    <!-- 识别语言与方言（v1.19） -->
+    <string name="settings_language">识别语言与方言</string>
+    <string name="lang_subtitle">说的是方言或外语，在这里提前选对，识别率差别很大。粤语由 SenseVoice 原生支持，其余方言会按普通话识别（应用会明确告知）。</string>
+    <string name="dialect_std">方言口语自动转普通话</string>
+    <string name="dialect_std_tip">开启后，方言录音会多花一次大模型调用，把「唔该晒 / 啥子 / 侬好」这类口语改写成普通话书面语。原话完整保留，详情页可随时切回。</string>
+    <string name="hotword_label">热词表（人名 / 公司 / 专业术语）</string>
+    <string name="hotword_hint">用逗号分隔，例如：虞懋府, 璟珹服务, 出租率, 免租期</string>
+    <string name="hotword_tip">只对支持提示词的转写服务生效（Whisper 系支持，硅基流动 SenseVoice 不支持）。最多 60 个词，识别人名与专名最有效。</string>
+
+    <!-- 通话打断说明（v1.15） -->
+    <string name="call_interrupt_title">通话会打断录音（会自动分段，不丢内容）</string>
+    <string name="call_interrupt_hint">来电、微信语音等通话一经建立，系统就把麦克风交给通话，任何第三方应用都无法在此期间录音——这是 Android 的硬性限制，不是草记的选择。\n\n草记的处理方式：\n· 通话前已经录到的部分，立刻收尾并保存成一条记录\n· 通话期间录不到（对方的声音系统同样不允许第三方录制）\n· 挂断后自动接着录，新的一段标为「接上段」\n· 超长录音每 30 分钟自动切段，单段损坏也不影响其他段\n\n若需要通话本身的内容，请开启手机自带的通话录音，回来用下面的「扫描系统通话录音并导入」。\n\n应用被系统清掉时来不及入库的录音，下次打开应用会自动恢复。</string>
+</resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  数据提取规则（Android 12+）
+
+  录音、转写、摘要属于最私密的那类数据，不应该跟着云备份走、
+  也不应该通过「换机克隆」跑到另一台设备上（那台设备的加密密钥不同，
+  密文过去也解不开，只会留下一堆无用的敏感字节）。
+
+  需要迁移时走应用内的「导出全部记录」（自己控制文件去向），
+  而不是让系统在后台默默复制一份。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

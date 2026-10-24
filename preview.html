@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>草记 · 交互原型</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root{
+    /* 中性化配色：灰为主色 + 正红作唯一强调色 */
+    --brand:#E60012; --brand-dark:#B0000E; --brand-light:#FDECEE;
+    --bg:#F5F5F5; --card:#fff; --text:#1A1A1A; --text2:#6B6B6B; --hint:#9E9E9E;
+    --rec:#E60012; --ok:#4A4A4A; --warn:#E60012;
+    --mark:#E60012; --mark-light:#FDECEE; --divider:#EDEDED; --stroke:#E8E8E8;
+  }
+  html,body{margin:0;padding:0;background:#E0E0E0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);}
+  .wrap{display:flex;justify-content:center;align-items:flex-start;gap:26px;padding:24px 16px;flex-wrap:wrap;}
+  .phone{
+    width:390px;height:844px;background:radial-gradient(520px 520px at 88% 6%, rgba(230,0,18,.08), transparent 70%),radial-gradient(560px 560px at 5% 95%, rgba(0,0,0,.07), transparent 70%), #ffffff;border-radius:34px;overflow:hidden;
+    box-shadow:0 20px 60px rgba(20,25,50,.22);display:flex;flex-direction:column;position:relative;
+    border:8px solid #14161C;
+  }
+  .statusbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:11px;color:#FFD9DC;background:var(--brand);}
+  .topbar{background:var(--brand);color:#fff;padding:6px 18px 18px;display:flex;align-items:flex-start;}
+  .topbar{justify-content:space-between;align-items:center;}
+  .topbar>div:first-child{display:flex;align-items:center;gap:10px;}
+  /* v1.22 品牌徽章：不再套白色玻璃圆环，渐变/顶光/底压/落影都在 svg 里 */
+  .brandmark{display:flex;flex-shrink:0;width:38px;height:38px;}
+  .brandmark svg{display:block;width:38px;height:38px;}
+  .dlogo{display:inline-flex;width:30px;height:30px;margin:0 10px 0 4px;}
+  .dlogo svg{display:block;width:30px;height:30px;}
+  .topbar .t1{font-size:22px;font-weight:800;letter-spacing:1px;}
+  .topbar .t2{font-size:12px;color:#FFD9DC;margin-top:6px;letter-spacing:.3px;}
+  .chip{margin-left:auto;background:rgba(255,255,255,.18);color:#fff;font-size:11px;padding:5px 10px;border-radius:10px;}
+  .chip.on{background:#fff;color:var(--brand-dark);}
+  .recbar{margin:12px 14px 0;background:#FFF1F1;border-radius:14px;padding:11px 13px;display:none;align-items:center;gap:9px;font-size:12px;color:var(--rec);}
+  .recbar.show{display:flex;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--rec);animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.25}}
+  .recbar .mark{margin-left:auto;background:var(--brand-light);color:var(--brand-dark);padding:5px 10px;border-radius:8px;font-size:11px;}
+  .body{flex:1;overflow-y:auto;padding:0 0 14px;}
+  .card{background:rgba(255,255,255,.90);border-radius:22px;padding:16px 18px;margin:0 16px 12px;border:1px solid rgba(255,255,255,.95);box-shadow:0 6px 20px rgba(12,24,36,.07);cursor:pointer;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transition:transform .12s ease, box-shadow .12s ease;}
+  .row{display:flex;align-items:center;gap:8px;}
+  .tag{background:var(--brand-light);color:var(--brand-dark);font-size:11px;padding:4px 10px;border-radius:12px;font-weight:600;}
+  .tag.warn{background:var(--mark-light);color:var(--mark);}
+  .time{font-size:11px;color:var(--hint);}
+  .dur{font-size:11px;color:var(--hint);}
+  .title{font-size:16px;font-weight:700;margin-top:10px;line-height:1.45;letter-spacing:.01em;}
+  .summary{font-size:13px;color:var(--text2);line-height:1.75;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .footerRow{display:flex;align-items:center;gap:6px;margin-top:11px;}
+  .status{margin-left:auto;font-size:10px;color:var(--ok);font-weight:600;}
+  .status.pending{color:var(--mark);}
+  .bottom{background:#fff;padding:12px 14px;border-top:1px solid var(--divider);box-shadow:0 -4px 16px rgba(10,50,44,.05);}
+  .mainbtn{width:100%;height:50px;border:0;border-radius:26px;background:var(--brand);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 18px rgba(230,0,18,.28);}
+  .mainbtn.stop{background:#B0000E;box-shadow:0 6px 18px rgba(176,0,14,.26);}
+  .btnrow{display:flex;gap:8px;}
+  .btnrow .mainbtn{flex:1.4;}
+  .mainbtn.ghost2{flex:1;background:#fff;color:var(--brand-dark);border:1.5px solid var(--brand);box-shadow:none;}
+  /* 音源选择（v1.16：手动指定手机麦克风 / 蓝牙耳机） */
+  .srcrow{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:12px;color:var(--text2);}
+  .srcchip{padding:5px 12px;border-radius:14px;border:1px solid var(--divider);background:#fff;color:var(--text2);font-size:12px;cursor:pointer;line-height:1.4;}
+  .srcchip.on{background:#FDECEE;border-color:var(--brand);color:var(--brand-dark);font-weight:600;}
+  .srcchip.dim{opacity:.4;}
+  .srcstate{margin-left:auto;font-size:10px;color:var(--hint);}
+  .dateHead{padding:20px 20px 12px;}
+  .dateHead .dTitle{font-size:24px;font-weight:800;letter-spacing:.2px;}
+  .dateHead .dMeta{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6;}
+  .pageHead{padding:20px 20px 8px;}
+  .pageHead .pTitle{font-size:24px;font-weight:800;}
+  .pageHead .pSub{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6;}
+  .voiceSheet{position:absolute;inset:0;background:rgba(17,24,39,.45);display:none;align-items:flex-end;z-index:8;}
+  .voiceSheet.show{display:flex;flex-direction:column;justify-content:flex-end;}
+  .voiceCard{background:#fff;border-radius:22px 22px 0 0;padding:20px;width:100%;}
+  .voiceCard h3{margin:0 0 12px;font-size:16px;font-weight:800;}
+  .holdBtn{width:100%;height:66px;border:0;border-radius:33px;background:var(--brand);color:#fff;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(230,0,18,.3);}
+  .holdBtn:active{background:var(--brand-dark);}
+  .nav{display:flex;background:rgba(255,255,255,.92);border-top:1px solid rgba(0,0,0,.06);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);}
+  .nav button{flex:1;border:0;background:transparent;padding:9px 0 11px;font-size:11px;color:var(--text2);cursor:pointer;}
+  .nav button i{display:block;font-size:17px;font-style:normal;margin-bottom:2px;}
+  .nav button.on{color:var(--brand);font-weight:800;}
+  .statrow{display:flex;background:#fff;border-radius:18px;padding:18px 14px;margin:0 14px 10px;text-align:center;box-shadow:0 2px 10px rgba(10,50,44,.05);}
+  .statrow > div{flex:1;}
+  .statrow b{display:block;font-size:23px;color:var(--brand);font-weight:800;}
+  .statrow span{font-size:11px;color:var(--text2);}
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;}
+  .field input{width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:10px;font-size:13px;background:#FBFBFC;color:var(--text);}
+  .switchrow{display:flex;align-items:center;background:#fff;border-radius:14px;padding:14px 16px;margin:0 0 9px;font-size:13px;box-shadow:0 1px 6px rgba(10,50,44,.04);}
+  .switchrow .sw{margin-left:auto;width:44px;height:26px;border-radius:14px;background:#D1D5DB;position:relative;transition:.2s;cursor:pointer;}
+  .switchrow .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+  .switchrow .sw.on{background:var(--brand);}
+  .switchrow .sw.on::after{left:21px;}
+  .tip{background:var(--mark-light);color:#B0000E;font-size:12px;line-height:1.75;border-radius:14px;padding:14px;margin-top:10px;}
+  .due{font-size:11px;margin-top:3px;cursor:pointer;}
+  .role-me{color:var(--brand-dark);font-weight:800;}
+  .role-other{color:var(--mark);font-weight:800;}
+  .card:active{transform:scale(.985);box-shadow:0 2px 8px rgba(10,60,50,.08);}
+  .empty{text-align:center;color:var(--hint);font-size:13px;padding:48px 16px;line-height:1.9;}
+  .detail{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:5;}
+  .detail.show{display:flex;}
+  .dbar{height:52px;background:var(--brand);color:#fff;display:flex;align-items:center;padding:0 8px;font-size:16px;font-weight:700;}
+  .dbar button{background:transparent;border:0;color:#fff;font-size:20px;width:40px;cursor:pointer;}
+  .dbody{flex:1;overflow-y:auto;padding:14px;}
+  .todo{display:flex;align-items:center;gap:8px;background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:13px;}
+  .todo input{width:16px;height:16px;}
+  .todo.done span{text-decoration:line-through;color:var(--hint);}
+  .meta{font-size:12px;color:var(--text2);margin-top:6px;}
+  /* v1.20 项目归属条：可点击修改，下面一行是 AI 的判断依据 */
+  .projchip{display:inline-block;font-size:12px;color:var(--text);border:1px solid rgba(15,110,92,.25);background:rgba(15,110,92,.08);border-radius:999px;padding:5px 12px;margin-top:10px;cursor:pointer;}
+  .projwhy{font-size:11px;color:var(--text2);line-height:1.6;margin-top:5px;}
+  .projlist{margin-top:8px;border:1px solid rgba(0,0,0,.07);border-radius:14px;overflow:hidden;background:#fff;}
+  .projitem{font-size:13px;padding:11px 14px;border-bottom:1px solid rgba(0,0,0,.05);cursor:pointer;}
+  .projitem:last-child{border-bottom:none;}
+  .projitem:hover{background:rgba(15,110,92,.06);}
+  .sec{font-size:15px;font-weight:800;margin:18px 0 8px;color:var(--text);}
+  .box{background:#fff;border-radius:16px;padding:15px;font-size:13px;line-height:1.8;color:var(--text);box-shadow:0 1px 6px rgba(10,50,44,.04);}
+  .box.sec2{color:var(--text2);font-size:12px;}
+  .explain{width:330px;font-size:13px;line-height:1.85;color:#3B4252;background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 30px rgba(20,25,50,.08);}
+  .explain h2{font-size:15px;margin:0 0 10px;}
+  .explain h3{font-size:13px;margin:18px 0 6px;color:var(--brand-dark);}
+  .explain ul{margin:0;padding-left:18px;}
+  .explain li{margin-bottom:5px;}
+  .ok{color:var(--ok);font-weight:600;}
+  .no{color:var(--rec);font-weight:600;}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="cbPlate" x1="0" y1="8" x2="0" y2="108" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#F0372A"/><stop offset=".4" stop-color="#E00111"/><stop offset="1" stop-color="#98000A"/>
+  </linearGradient>
+  <linearGradient id="cbGloss" x1="0" y1="8" x2="0" y2="108" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".21"/><stop offset=".2" stop-color="#ffffff" stop-opacity=".086"/><stop offset=".36" stop-color="#ffffff" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="cbShade" x1="0" y1="8" x2="0" y2="108" gradientUnits="userSpaceOnUse">
+    <stop offset=".55" stop-color="#3A0004" stop-opacity="0"/><stop offset="1" stop-color="#3A0004" stop-opacity=".31"/>
+  </linearGradient>
+  <linearGradient id="cbRim" x1="0" y1="8" x2="0" y2="108" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".5"/><stop offset=".3" stop-color="#ffffff" stop-opacity=".2"/><stop offset=".48" stop-color="#ffffff" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="cbDrop" x="-25%" y="-25%" width="150%" height="160%">
+    <feDropShadow dx="0" dy="3.2" stdDeviation="2.1" flood-color="#4A0003" flood-opacity=".4"/>
+  </filter>
+  <symbol id="cbadge" viewBox="0 0 120 120">
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#cbPlate)" filter="url(#cbDrop)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#cbGloss)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="url(#cbShade)"/>
+    <path d="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" fill="none" stroke="url(#cbRim)" stroke-width="1.6"/>
+    <path d="M78.13,38.80 A28.2,28.2 0 1 0 78.13,82.00 L70.20,72.56 A15.87,15.87 0 1 1 70.20,48.24 Z" fill="#4A0003" fill-opacity=".26"/>
+    <path d="M78.13,36.40 A28.2,28.2 0 1 0 78.13,79.60 L70.20,70.16 A15.87,15.87 0 1 1 70.20,45.84 Z" fill="#fff"/>
+  </symbol>
+</defs></svg>
+<div class="wrap">
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>草记 · 原型演示</span><span>100%</span></div>
+    <div class="topbar"><div class="brandmark"><svg class="cb"><use href="#cbadge"/></svg></div>
+      <div>
+        <div class="t1">草记</div>
+        <div class="t2">陪你思考，把事情做成</div>
+      </div>
+      <div class="chip" id="chip">耳机未连接</div>
+    </div>
+
+    <div class="recbar" id="recbar">
+      <div class="dot"></div>
+      <span id="rectext">正在记录 00:00</span>
+      <div class="mark" onclick="markPoint()">标记重点</div>
+    </div>
+
+    <div class="body" id="pageToday"></div>
+    <div class="body" id="pageProjects" style="display:none"></div>
+    <div class="body" id="pageInsight" style="display:none"></div>
+    <div class="body" id="pageSettings" style="display:none"></div>
+
+    <div class="bottom" id="bottomBar">
+      <div class="srcrow">
+        <span>音源</span>
+        <button class="srcchip on" id="chipPhone" onclick="pickSource(false)">手机麦克风</button>
+        <button class="srcchip" id="chipBt" onclick="pickSource(true)">蓝牙耳机</button>
+        <span class="srcstate" id="srcState"></span>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn ghost2" onclick="openVoice()">🎙 按住说话</button>
+        <button class="mainbtn" id="btnRec" onclick="toggleRec()">开始记录</button>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="on" data-i="0" onclick="tab(0)"><i>📅</i>今日</button>
+      <button data-i="1" onclick="tab(1)"><i>📁</i>项目</button>
+      <button data-i="2" onclick="tab(2)"><i>💡</i>觉察</button>
+      <button data-i="3" onclick="tab(3)"><i>⚙️</i>设置</button>
+    </div>
+
+    <!-- 详情页 -->
+    <!-- 按住说话（对应心力球长按 AI 键） -->
+    <div class="voiceSheet" id="voiceSheet">
+      <div class="voiceCard">
+        <h3>语音速记 · 松手自动判断</h3>
+        <div id="voiceBody">
+          <div class="tip blue" style="margin:0 0 12px;">按住下面的大按钮说话。说的是问句会直接回答；说的是念想或待办会存成带重点标记的记录。</div>
+          <button class="holdBtn" onmousedown="voiceStart()" onmouseup="voiceStop()">按住说话</button>
+        </div>
+        <div id="voiceResult" style="display:none;margin-top:6px;"></div>
+        <button class="mainbtn ghost2" style="width:100%;margin-top:10px;height:42px;" onclick="closeVoice()">关闭</button>
+      </div>
+    </div>
+
+    <div class="detail" id="detail">
+      <div class="dbar"><button onclick="closeDetail()">‹</button><span class="dlogo"><svg class="cb"><use href="#cbadge"/></svg></span><span>记录详情</span></div>
+      <div class="dbody" id="detailBody"></div>
+    </div>
+  </div>
+
+  <div class="explain">
+    <h2>这是「草记」交互原型</h2>
+    <p style="color:#6B7280;margin:0 0 10px;">可点击操作：切 Tab、点记录看详情、勾待办、开始/结束记录、标记重点、切换耳机连接。</p>
+
+    <h3>与心力球一致的逻辑</h3>
+    <ul>
+      <li>持续记录 → 自动转写 → 拆分事件、生成标题与摘要</li>
+      <li>「今日」看结构化摘要与待办，「项目」跨场景归集，「觉察」看行为洞察</li>
+      <li>短按标记重点；默认只留文字不留原音</li>
+    </ul>
+
+    <h3>按你要求改的两点</h3>
+    <ul>
+      <li>触发：<b>连上蓝牙耳机才开始记录</b>，断开自动结束（右上角可点「耳机未连接」模拟连接）</li>
+      <li>音源：也可<b>手动选手机麦克风</b>直接录（今日页底部「音源」），录音中途切换也是立即生效</li>
+      <li>通话：读取手机自带通话录音文件纳入记录</li>
+    </ul>
+
+    <h3>中国方言与多语言（v1.19 新增）</h3>
+    <ul>
+      <li>设置页新增<b>识别语言与方言</b>：普通话 / 粤语 / 吴语 / 闽南语 / 客家话 / 湘语 / 晋语 / 四川话 / 东北话 / 中英混合 / 英日韩</li>
+      <li>能不能真的识别，取决于服务端有没有那个方言的模型——粤语 SenseVoice 原生支持；<b>其余方言会按普通话识别，设置页当场写明</b>，不假装支持</li>
+      <li>方言稿可<b>自动转成普通话书面语</b>（多花一次大模型调用），原话完整保留，详情页一键切回</li>
+      <li>本地会检测「选了普通话、文本却满是粤语用字」的情况，直接给<b>「按粤语重转」</b>入口（见「昨天」那条粤语记录）</li>
+      <li>支持提示词的服务可填<b>热词表</b>（人名 / 公司 / 术语），方言录音里专名最不容易错</li>
+    </ul>
+
+    <h3>项目归属：不再记错项目（v1.20 新增）</h3>
+    <ul>
+      <li>项目从「一串名字」升级成<b>档案</b>：规范名 + 别名 + 线索词 + 说明，分析时只把相关候选连特征一起给模型</li>
+      <li>历史碎片自动归并：<b>「城市之光」「城市之光项目」「城市之光 」从此是同一条线</b>，不再各挂一半记录</li>
+      <li>强制模型<b>抄原文依据</b>：抄不出证据就必须留空——「空」比「错」有用，错归会让你以后彻底找不到这条记录</li>
+      <li>拿不准的标<b>「待确认」</b>（列表标签带 ?），详情页点项目条就能改，改完记进档案，下次同类说法自动命中</li>
+      <li>一次会议跨项目时，<b>每条待办自带项目标签</b>，不会把 A 的报价算成 B 的</li>
+      <li>项目页顶部会提示<b>「有 N 条记录还没归属」</b>，点进去逐条归类</li>
+      <li>点开「虞懋府 3 号楼」（已确认）、「陈师傅睇楼」（待确认）、「退租原因标签」（未归属）三条，能看到三种状态的差别</li>
+    </ul>
+
+    <h3>AI 服务商：可选免费的</h3>
+    <ul>
+      <li><b>智谱 glm-4-flash</b>：目前可<span class="ok">免费调用</span>，日常摘要够用</li>
+      <li><b>通义千问 qwen-turbo</b>：新用户每模型有<span class="ok">免费额度</span></li>
+      <li><b>硅基流动</b>：注册送额度，转写也在这家，一套 Key 全搞定</li>
+      <li><b>DeepSeek</b>：无免费但极便宜（百万 token 约 1~2 元）</li>
+      <li>设置页选服务商 → 地址与模型<span class="ok">自动填好</span>，只需填 Key，还能一键测试连接</li>
+    </ul>
+
+    <h3>技术边界（必须知道）</h3>
+    <ul>
+      <li>来电/去电：<span class="ok">可覆盖</span>（依赖系统通话自动录音，ColorOS 支持）</li>
+      <li>微信语音：<span class="no">无法覆盖</span>——微信语音不走系统通话通道且会静音内录，第三方 App 与录音笔都做不到</li>
+    </ul>
+
+    <h3>心力球功能对照</h3>
+    <ul>
+      <li>自动记录 → <span class="ok">✅</span> 连蓝牙耳机触发（你的要求）</li>
+      <li>隐私灯 → <span class="ok">✅</span> 常驻通知 + 状态条</li>
+      <li>短按打标 → <span class="ok">✅</span> 记录时间点，列表显示「重点 N」</li>
+      <li>长按语音输入 / 即时问答 → <span class="ok">✅</span> 点左下「按住说话」试试</li>
+      <li>转写 + 摘要 + 待办 → <span class="ok">✅</span> 云端 AI（可选免费模型）</li>
+      <li>「今日」时间线 → <span class="ok">✅</span></li>
+      <li>「项目」归集 + <b>洞见卡片</b> → <span class="ok">✅</span> 点「项目」里的条目看</li>
+      <li>「觉察」+ <b>跨记录复盘</b> → <span class="ok">✅</span> 见觉察页「生成复盘报告」</li>
+      <li>只留文字不留原音 → <span class="ok">✅</span> 可设置保留</li>
+      <li>通话内容 → <span class="warn">⚠️</span> 读系统通话录音</li>
+      <li>微信语音 → <span class="no">❌</span> 系统限制，第三方做不到</li>
+    </ul>
+
+    <h3>上一轮新增（1 + 2）</h3>
+    <ul>
+      <li><b>① 声纹区分我/对方</b>：转写后文本变成 <span style="color:#3730A3;font-weight:700;">[我]</span> / <span style="color:#B0000E;font-weight:700;">[对方]</span> 分角色格式，摘要按角色归纳——点开第一条记录看「原始转写」</li>
+      <li><b>③ 本人声纹（新增）</b>：录一次自己 15 秒的声音，之后自动认出哪几段是你说的话，详情页显示「我 = 说话人1（匹配度 98%）」——见「设置」页与任意记录详情</li>
+      <li><b>② 待办到期提醒</b>：待办自动带到期日（「下周五」自动换算日期），详情页点日期可手改；每天定时提醒今天到期/已逾期，觉察页顶部也有提示</li>
+    </ul>
+
+    <h3>真实 App 里已实现</h3>
+    <ul>
+      <li>前台录音服务 + 通知栏标记重点</li>
+      <li>蓝牙耳机连接广播监听触发录音</li>
+      <li>SQLite 本地库、通话录音扫描导入</li>
+      <li>ASR 转写 + 大模型摘要/待办/项目/洞察流水线</li>
+    </ul>
+    <p style="margin:14px 0 0;font-size:12px;color:#9AA0A6;">原型仅演示界面与流程，不真实录音、不调用 AI 接口。</p>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  sessions: [
+    {
+      id: 1, time: '14:30', dur: '18分20秒', source: 'live', marked: true, status: '已整理',
+      title: '虞懋府 3 号楼招商进度对齐',
+      project: '虞懋府招商',
+      projectConf: 0.95,
+      projectWhy: '与项目档案一致；依据：「3 号楼还剩 24 套，其中 8 套有客户在谈」',
+      summary: '与招商主管确认 3 号楼剩余 24 套去化节奏：我承诺 10 月底前收齐 8 套意向金并在本周推动工程给出样板间日期；对方要求 11 月 5 日前完成样板间交付；定价维持 1.68 万/㎡，不公开调价，仅对大客户留 3% 折扣空间。\n\n【洞察】本次沟通中你 3 次用「应该可以」这类模糊表述，未给出明确时间点，对方随后反复追问交付日期——后续给出承诺时建议直接绑定日期。',
+      todos: [
+        { t: '收齐 8 套意向金', done: false, due: '2026-10-31' },
+        { t: '交付样板间（对接工程）', done: false, due: '2026-11-05' },
+        { t: '整理大客户折扣审批口径', done: true, due: '' }
+      ],
+      transcript: '[我] 3 号楼还剩 24 套，其中 8 套有客户在谈。\n[对方] 那 10 月底之前能把这 8 套的意向金收一下吗？\n[我] 可以，这周开始跟进。\n[对方] 样板间什么时候能好？\n[我] 应该可以赶上，我催一下工程。\n[对方] 最好给个准日子，我们好安排带看。'
+    },
+    {
+      id: 2, time: '11:05', dur: '6分10秒', source: 'call', marked: false, status: '已整理',
+      title: '与璟珹物业确认保洁外包结算',
+      project: '璟珹服务',
+      projectConf: 0.9,
+      projectWhy: '命中别名「璟珹」；依据：「9 月的账我们对一下」',
+      summary: '通话确认 9 月保洁外包结算金额 4.28 万元，我要求对方本周五前开具发票；对方提出 10 月起按新合同单价上调 5%，需我方重新走一次审批。\n\n【洞察】你在通话里先给结论再讲依据，对方接受度明显更高，这个沟通顺序可以固化成习惯。',
+      todos: [
+        { t: '催收 9 月发票', done: false, due: '2026-10-23' },
+        { t: '提交 10 月新单价审批', done: false, due: '2026-10-28' }
+      ],
+      transcript: '[对方] 9 月的账我们对一下，是 4 万 2 千 8 吧？\n[我] 对，4.28 万，发票这周五前能开出来吗？\n[对方] 可以，周五前给您。另外 10 月开始单价要上调 5%。\n[我] 这个要重新走审批，我这周报上去。'
+    },
+    {
+      id: 3, time: '09:12', dur: '1分32秒', source: 'live', marked: false, status: '待转写',
+      title: '灵感：把租金预警做成每周推送',
+      project: '',
+      summary: '待转写（配置转写接口后自动处理）',
+      todos: [],
+      transcript: ''
+    },
+    {
+      id: 4, time: '昨天 16:48', dur: '9分05秒', source: 'live', marked: false, status: '已整理',
+      title: '与陈师傅倾下周三睇楼安排',
+      project: '菁舍城招租',
+      projectConf: 0.42,
+      projectWhy: '「睇樓」同时像 菁舍城招租、菁舍城二期，线索不足以判定，已标为待确认',
+      lang: 'yue',
+      langLabel: '粤语（广东话）',
+      summary: '与陈师傅确认下周三下午带两组客户到菁舍城看房：我负责当天上午把 1203、1508 两套房源打扫好并放好钥匙，对方负责联系客户确认到场时间；客户关注的是采光与车位，需要准备一份车位租金说明。\n\n【洞察】粤语沟通里你偏向先答应再看资源，这次承诺的两套房源准备时间只有一天，容易赶；下次可以直接把「需要提前几天」讲出来。',
+      todos: [
+        { t: '1203、1508 两套房源打扫并放钥匙', done: false, due: '2026-10-28' },
+        { t: '准备车位租金说明给客户', done: false, due: '2026-10-29' }
+      ],
+      transcript: '[對方] 下個禮拜三你幾點得閒？有兩個客想睇樓。\n[我] 下晝三點得，你帶佢哋上嚟就得。\n[對方] 咁 1203 同 1508 嗰兩間執好未？\n[我] 我聽日上晝執好佢，鎖匙放喺櫃檯。\n[對方] 啲客好緊張採光同車位，你有冇車位租金嘅資料？\n[我] 有，我整理一份畀你。',
+      std: '[對方] 下周三你几点有空？有两个客户想来看房。\n[我] 下午三点可以，你带他们上来就行。\n[對方] 那 1203 和 1508 那两间收拾好了吗？\n[我] 我明天上午收拾好，钥匙放在前台。\n[對方] 客户比较在意采光和车位，你有车位租金的资料吗？\n[我] 有，我整理一份给你。'
+    },
+    {
+      id: 5, time: '前天 20:10', dur: '2分12秒', source: 'voice', marked: false, status: '已整理',
+      title: '想法：把退租原因做成标签统计',
+      project: '',
+      projectConf: 0,
+      projectWhy: '原文没有出现任何项目名或线索词，按「宁缺勿错」留空',
+      summary: '想到一个改进：租客退租时让管家必须选一个原因标签（价格 / 采光 / 通勤 / 服务），季度汇总后找出流失主因。\n\n【洞察】这次是纯想法，没有落到具体项目——先归属到项目反而会让以后找这条记录时定位错。',
+      todos: [
+        { t: '列一版退租原因标签清单', done: false, due: '' }
+      ],
+      transcript: '[我] 退租的时候让管家选原因标签，价格、采光、通勤、服务这几个，一个季度看一次分布，就知道该改什么了。'
+    }
+  ],
+  // 项目档案（规范名 + 别名/线索词在真机里由项目详情页维护）
+  projects: ['虞懋府招商', '璟珹服务', '菁舍城招租', '城市之光', '盛懋中心']
+};
+
+let TODAY = '2026-10-21';
+let currentTab = 0, recording = false, recSec = 0, recTimer = null, headset = false;
+// v1.16：音源（false=手机麦克风，true=蓝牙耳机麦克风），与真机上的 K_BT_MIC 同义
+let micBt = false;
+const $ = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function renderToday() {
+  const total = DATA.sessions.length;
+  const html = `
+    <div class="dateHead">
+      <div class="dTitle">今天</div>
+      <div class="dMeta">10月21日 周三 · ${total} 段记录 · 26 分钟 · ${recording ? '<span style="color:#E60012;">正在记录，可标记重点</span>' : '连接蓝牙耳机后自动开始'}</div>
+    </div>
+    ${DATA.sessions.map(s => `
+      <div class="card" onclick="openDetail(${s.id})">
+        <div class="row">
+          <span class="time">${s.time}</span>
+          <span class="tag ${s.source === 'call' ? 'warn' : ''}">${s.source === 'call' ? '通话' : '耳机记录'}</span>
+          ${s.marked ? '<span class="tag warn">重点</span>' : ''}
+          <span class="dur">${s.dur}</span>
+        </div>
+        <div class="title">${esc(s.title)}</div>
+        <div class="summary">${esc(s.summary.split('【洞察】')[0].trim())}</div>
+        <div class="footerRow">
+          ${s.project ? `<span class="tag">${esc(s.project)}</span>` : ''}
+          ${s.todos.length ? `<span class="tag">待办 ${s.todos.filter(t=>!t.done).length}</span>` : ''}
+          <span class="status ${s.status === '待转写' ? 'pending' : ''}">${s.status}</span>
+        </div>
+      </div>`).join('')}`;
+  $('pageToday').innerHTML = html;
+}
+
+function renderProjects() {
+  const map = {};
+  DATA.sessions.filter(s => s.project).forEach(s => {
+    map[s.project] = map[s.project] || [];
+    map[s.project].push(s);
+  });
+  const keys = Object.keys(map);
+  if (!keys.length) {
+    $('pageProjects').innerHTML = '<div class="pageHead"><div class="pTitle">项目</div>'
+      + '<div class="pSub">同一主题的多场沟通自动归集，串成一条时间线</div></div>'
+      + '<div class="empty">还没有项目归集<br/>记录中提到的项目会自动归入这里</div>';
+    return;
+  }
+  const projHead = `<div class="pageHead"><div class="pTitle">项目</div><div class="pSub">同一主题的多场沟通自动归集，串成一条时间线</div></div>`;
+  // v1.20：未归属的悬空记录单独给入口，否则它们只会消失在列表深处
+  const unsorted = DATA.sessions.filter(s => !s.project && s.status === '已整理');
+  const unsortedBar = unsorted.length
+    ? `<div class="card" style="background:rgba(15,110,92,.06);border:1px dashed rgba(15,110,92,.3);" onclick="alert('真机：弹出「日期 + 标题」列表，选一条直接进详情改项目')">
+         <div class="meta" style="margin:0;color:#0F6E5C;font-weight:600;">有 ${unsorted.length} 条记录还没归属项目 · 点这里逐条归类</div>
+       </div>`
+    : '';
+  $('pageProjects').innerHTML = projHead + unsortedBar + keys.map(k => `
+    <div class="card" onclick="showProject('${esc(k)}')">
+      <div class="row">
+        <div style="flex:1">
+          <div class="title" style="margin:0;">${esc(k)}</div>
+          <div class="meta">${map[k].length} 段记录 · 最近 ${map[k][0].time}</div>
+        </div>
+        <span style="color:#9AA0A6;font-size:20px;">›</span>
+      </div>
+    </div>`).join('');
+}
+
+function dueItemsOf(all) {
+  const todos = [];
+  all.forEach(s => s.todos.forEach(t => todos.push(t)));
+  return todos.filter(t => !t.done && t.due);
+}
+function dueColorOf(all) {
+  const items = dueItemsOf(all);
+  const overdue = items.filter(t => t.due < TODAY).length;
+  const dueToday = items.filter(t => t.due === TODAY).length;
+  if (overdue > 0) return '#E60012';
+  if (dueToday > 0) return '#F59E0B';
+  return '#6B7280';
+}
+function dueTextOf(all) {
+  const items = dueItemsOf(all);
+  const overdue = items.filter(t => t.due < TODAY).length;
+  const dueToday = items.filter(t => t.due === TODAY).length;
+  if (overdue > 0 && dueToday > 0) return '待办：已逾期 ' + overdue + ' 项，今天到期 ' + dueToday + ' 项（点开记录可设到期日）';
+  if (overdue > 0) return '待办：已逾期 ' + overdue + ' 项，建议尽快处理';
+  if (dueToday > 0) return '待办：今天到期 ' + dueToday + ' 项';
+  return '待办：今天没有到期项';
+}
+
+function genRetrospect() {
+  const box = $('retroBox');
+  if (!box) return;
+  box.textContent = '正在复盘…';
+  setTimeout(function(){
+    box.textContent = '【沟通模式】\n'
+      + '1. 你倾向先给结论再讲依据，对方接受度明显更高（璟珹通话里体现得很清楚）。\n'
+      + '2. 涉及交付时间时常用「应该可以」「催一下」这类模糊表述，随后被对方追问。\n'
+      + '3. 决策类沟通后当天就能落成待办，执行力不错。\n\n'
+      + '【盲区提示】\n'
+      + '1. 承诺不绑定日期，容易在后续被反复追问，也削弱自己的可信度。\n'
+      + '2. 单次沟通里关注当前事项，较少主动确认「上次那件事办到哪了」。\n\n'
+      + '【值得保持】\n'
+      + '先结论后依据的表达顺序、以及会后立即留待办的习惯。\n\n'
+      + '【下周可试】\n'
+      + '1. 每次给承诺时直接说日期（「周三之前给你答复」）。\n'
+      + '2. 开场先花 30 秒对齐上次遗留事项。\n'
+      + '3. 项目类沟通结束后立刻更新一次洞见卡片。';
+  }, 600);
+}
+
+function renderInsight() {
+  const all = DATA.sessions;
+  const marked = all.filter(s => s.marked).length;
+  const calls = all.filter(s => s.source === 'call').length;
+  const todos = all.flatMap(s => s.todos);
+  const done = todos.filter(t => t.done).length;
+  const rate = todos.length ? Math.round(done / todos.length * 100) + '%' : '—';
+  const insights = all.filter(s => s.summary.includes('【洞察】'));
+
+  $('pageInsight').innerHTML = `
+    <div class="pageHead"><div class="pTitle">觉察</div><div class="pSub">给你引导，让下次更好</div></div>
+    <div class="statrow">
+      <div><b>${all.length}</b><span>累计记录</span></div>
+      <div><b>26分</b><span>累计时长</span></div>
+      <div><b>${rate}</b><span>待办完成率</span></div>
+    </div>
+    <div class="card" style="cursor:default;color:#6B7280;font-size:12px;">
+      重点标记 ${marked} 处 · 通话记录 ${calls} 条 · 待办 ${done}/${todos.length} 已完成
+    </div>
+    <div class="card" style="cursor:default;font-size:12px;color:${dueColorOf(all)};">${dueTextOf(all)}</div>
+    <div class="sec">行为复盘</div>
+    <button class="mainbtn ghost2" style="width:100%;height:42px;font-size:13px;margin-bottom:8px;"
+      onclick="genRetrospect()">生成复盘报告（近 30 天）</button>
+    <div id="retroBox" class="box" style="white-space:pre-wrap;font-size:12px;color:#6B7280;">还没有复盘报告。点上方按钮，让 AI 从最近记录里找出你的沟通模式与盲区。</div>
+    <div class="sec">近期洞察</div>
+    ${insights.length ? insights.map(s => `
+      <div class="card" onclick="openDetail(${s.id})">
+        <div class="title" style="margin:0;">${esc(s.title)}</div>
+        <div class="meta">${s.time} · ${esc(s.project || '未归项目')}</div>
+        <div class="summary" style="-webkit-line-clamp:4;color:#6B7280;margin-top:8px;">${esc(s.summary.split('【洞察】')[1] || '')}</div>
+      </div>`).join('') : '<div class="empty">还没有洞察，记录几段对话后会自动生成</div>'}`;
+}
+
+function renderSettings() {
+  const llmProv = [
+    { name: '硅基流动（默认｜送额度/部分免费）', base: 'https://api.siliconflow.cn/v1', model: 'Qwen/Qwen2.5-7B-Instruct', note: '默认服务商：注册送额度，转写也在这家，一套 Key 全搞定' },
+    { name: '智谱 GLM（有免费模型）', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash', note: 'glm-4-flash 目前可免费调用，日常摘要够用' },
+    { name: '通义千问（新用户免费额度）', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-turbo', note: '每模型有免费 token 额度，qwen-turbo 单价很低' },
+    { name: 'DeepSeek（极低价）', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat', note: '无永久免费，但百万 token 约 1~2 元，中文摘要质量好' },
+    { name: 'Kimi 月之暗面', base: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k', note: '有免费额度，长文本友好' }
+  ];
+  const selProv = window.__llmProvIdx == null ? 0 : window.__llmProvIdx;
+  const cur = llmProv[selProv];
+
+  $('pageSettings').innerHTML = ''
+    + '<div class="pageHead"><div class="pTitle">设置</div>'
+    + '<div class="pSub">AI 服务、录音方式、对外打通与隐私，全部在这里</div></div>'
+    // v1.18：状态概览卡（常显，回答「我到底配好了没有」）
+    + '<div class="card" style="margin:6px 0 4px;padding:14px;background:linear-gradient(180deg,#FFF3F4,#FFFFFF);border:1px solid #FADCDE;border-radius:18px;">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--brand-dark);">当前配置</div>'
+    + '<div style="font-size:12px;color:#1A1A1A;margin-top:8px;line-height:1.7;">大模型：硅基流动 · Qwen/Qwen2.5-7B-Instruct<br>语音转写：硅基流动 · 纯文本<br>对外打通：飞书 / 钉钉 / WorkBuddy 目录</div>'
+    + '<div style="font-size:11px;color:#9E9E9E;margin-top:8px;">已就绪：录音结束后会自动转写、生成摘要与待办。</div>'
+    + '</div>'
+    // v1.18：分组卡片壳（真机上每组可折叠，这里给个示意图标）
+    + '<div class="sec" style="margin-top:14px;">AI 服务 <span style="font-weight:400;color:#9E9E9E;font-size:11px;">· 大模型写摘要、转写服务听声音</span></div>'
+    + '<div class="field"><label>服务商（选中后地址与模型自动填好）</label>'
+    + '<select id="selLlmProv" onchange="pickLlmProvider(this.selectedIndex)">'
+    + llmProv.map(function(p, i){ return '<option ' + (i === selProv ? 'selected' : '') + '>' + p.name + '</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="tip blue" style="margin-top:0;">' + cur.note + '</div>'
+    + '<div class="field" style="margin-top:10px;"><label>接口地址</label><input value="' + cur.base + '" /></div>'
+    + '<div class="field"><label>API Key</label><input type="password" value="sk-****************" /></div>'
+    + '<div class="field"><label>模型</label>'
+    + '<select><option>' + cur.model + '</option></select></div>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);" '
+    + 'onclick="alert(&quot;连接成功 · 模型 ' + cur.model + ' 回复：正常&quot;)">测试连接</button>'
+
+    + '<div class="sec">语音转写接口</div>'
+    + '<div class="field"><label>服务商</label>'
+    + '<select><option>硅基流动 SenseVoice（便宜/仅纯文本）</option><option>OpenAI Whisper</option><option>自定义（Whisper 兼容）</option></select></div>'
+    + '<div class="tip blue" style="margin-top:0;">中文识别效果好、单价低；与大模型同一账号时只需一套 Key；只返回纯文本，不做说话人分离</div>'
+    + '<div class="field" style="margin-top:10px;"><label>转写地址</label><input value="https://api.siliconflow.cn/v1/audio/transcriptions" /></div>'
+    + '<div class="field"><label>转写 Key</label><input type="password" value="sk-****************" /></div>'
+    + '<div class="field"><label>转写模型</label><input value="FunAudioLLM/SenseVoiceSmall" /></div>'
+
+    + '<div class="sec">识别语言与方言</div>'
+    + '<div class="tip blue" style="margin-top:0;">说的是方言或外语，在这里提前选对，识别率差别很大。粤语由 SenseVoice 原生支持，其余方言会按普通话识别（应用会明确告知）。</div>'
+    + '<div class="field"><label>语言 / 方言</label>'
+    + '<select onchange="document.getElementById(&apos;langTip&apos;).innerHTML=this.options[this.selectedIndex].getAttribute(&apos;data-tip&apos;)">'
+    + '<option data-tip="交给服务端判断语种。普通话、粤语、英日韩都能认；缺点是短句或夹杂口音时可能猜错。">自动识别（推荐）</option>'
+    + '<option data-tip="最稳的选择：强制按普通话识别，输出简体中文。">普通话（简体）</option>'
+    + '<option data-tip="港台用语、繁体字习惯场景用。App 不会把繁体转成简体。">普通话（保留繁体）</option>'
+    + '<option data-tip="SenseVoice 与 Whisper 都能出粤语文本，常带「唔 / 嘅 / 咗 / 佢」等粤语用字。当前服务可直接按此方言识别（language=yue）。">粤语（广东话）</option>'
+    + '<option data-tip="⚠ 硅基流动 SenseVoice（默认｜便宜/仅纯文本） 不支持「吴语（上海话 / 苏州话）」，本次按普通话识别：方言词可能被改写成普通话表达，人名与专名建议核对。">吴语（上海话 / 苏州话）</option>'
+    + '<option data-tip="⚠ 服务端无原生支持，按普通话识别为主；闽南语用字（阮 / 厝 / 毋）可能被改写成普通话词。">闽南语（福建 / 台湾）</option>'
+    + '<option data-tip="⚠ 服务端无原生支持，按普通话识别；建议配合热词表提升专名准确率。">客家话</option>'
+    + '<option data-tip="属西南官话，与普通话字面接近，按 zh 识别成功率已经不错；有口音时可加热词表。">四川话（西南官话）</option>'
+    + '<option data-tip="一段话里中英混说时用。Whisper 系效果最好；纯中文引擎会把英文按发音硬转成汉字。">中英混合（夹英文）</option>'
+    + '<option data-tip="原文为英文，摘要仍用简体中文输出，专有名词保留英文。">English</option>'
+    + '</select></div>'
+    + '<div class="tip blue" id="langTip">交给服务端判断语种。普通话、粤语、英日韩都能认；缺点是短句或夹杂口音时可能猜错。</div>'
+    + '<div class="switchrow" style="margin-top:8px;"><span>方言口语自动转普通话</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="tip blue">开启后，方言录音会多花一次大模型调用，把「唔该晒 / 啥子 / 侬好」这类口语改写成普通话书面语。原话完整保留，详情页可随时切回。</div>'
+    + '<div class="field"><label>热词表（人名 / 公司 / 专业术语）</label><input placeholder="例如：虞懋府, 璟珹服务, 出租率, 免租期" /></div>'
+    + '<div class="tip blue">只对支持提示词的转写服务生效（Whisper 系支持，硅基流动 SenseVoice 不支持）。最多 60 个词，识别人名与专名最有效。</div>'
+
+    + '<div class="sec">本人声纹</div>'
+    + '<div class="tip" style="background:#E4F6F2;color:#0B8E80;">已录入 · 15.2 秒样本 · 有效人声 83% · 10-22 10:40</div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<div class="btn" style="flex:1;margin:0;height:44px;line-height:44px;font-size:14px;" onclick="alert(&quot;打开录入页：读 15 秒提示句，自动提取声纹&#10;（真机上会跳到录入页，可录制 / 重录 / 清除）&quot;)">重新录入</div>'
+    + '<div class="btn ghost" style="flex:1;margin:0;height:44px;line-height:44px;font-size:14px;background:#fff;color:#6C7C78;border:1px solid #E8E8E8;" onclick="alert(&quot;清除后回到手动指定「我是说话人几」&quot;)">清除</div>'
+    + '</div>'
+    + '<div class="switchrow" style="margin-top:8px;"><span>用声纹自动识别「我」</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;) "></div></div>'
+    + '<div class="tip blue">自动采用门槛：匹配度 ≥ 80%（即明显比其他人更像你）。达不到就保留你手动指定的「我是说话人几」，不会乱改。声纹特征只存在本机，不上传。</div>'
+
+    + '<div class="sec">说话人区分（声纹）</div>'
+    + '<div class="switchrow" style="opacity:.45;"><span>转写时启用说话人分离</span><div class="sw" onclick="alert(&quot;当前转写服务只返回纯文本，不提供说话人分段，此开关已被关闭&quot;)"></div></div>'
+    + '<div class="field" style="opacity:.45;"><label>我是说话人</label>'
+    + '<select disabled><option>说话人1</option><option>说话人2</option><option>说话人3</option><option>说话人4</option></select></div>'
+    + '<div class="tip blue">当前选的是「硅基流动 SenseVoice（便宜/仅纯文本）」，它只返回纯文本，不返回说话人分段。因此「说话人分离」与「我是说话人几」都不起作用（本机声纹比对同样依赖分段，也无法自动认出「我」）。需要区分我 / 对方，请改用支持 diarization 的服务，例如自建 WhisperX / faster-whisper。</div>'
+
+    + '<div class="sec">待办提醒</div>'
+    + '<div class="switchrow"><span>开启待办到期提醒</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="field"><label>每日提醒时间</label>'
+    + '<select><option>08:00</option><option selected>09:00</option><option>10:00</option><option>18:00</option><option>20:00</option></select></div>'
+
+    + '<div class="sec">记录行为</div>'
+    + '<div class="switchrow"><span>连接蓝牙耳机自动开始记录</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="switchrow"><span>保留原始录音（默认只留文字）</span><div class="sw" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="switchrow"><span>用蓝牙耳机麦克风录音</span><div class="sw" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="tip blue">默认关闭 = 手机麦克风（44.1kHz，音质好，且不改动蓝牙音频通路，连接最稳）。开启后切到耳机麦（离嘴近），但走蓝牙通话通路，音质较低且期间音乐会被打断。耳机连接不稳时请保持关闭。</div>'
+    + '<div class="tip" style="background:#E4F6F2;color:#0B8E80;">已优化：耳机短暂断连 3 秒内恢复不会中断记录；回到前台会自动校正连接状态；不再把音频通路切换误判成断开。</div>'
+
+    + '<button class="mainbtn" style="height:44px;font-size:14px;margin:14px 0 10px;" onclick="alert(\'配置已保存（原型演示）\')">保存配置</button>'
+    + '<button class="mainbtn" style="height:44px;font-size:14px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:10px;" onclick="alert(\'已扫描：发现通话录音 2 条，已导入并进入转写队列（原型演示）\')">扫描系统通话录音并导入</button>'
+
+    + '<div class="sec">整理导出与系统打通</div>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'生成「草记 · 今日记录」Markdown，可选择保存位置\')">导出今日记录（Markdown）</button>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'生成「草记 · 全部记录」Markdown，可选择保存位置\')">导出全部记录（Markdown）</button>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'生成待办清单 Markdown\')">导出待办清单（Markdown）</button>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);" onclick="alert(\'请求日历读写权限，把未完成待办写成全天事件（重复的自动跳过）\')">把未完成待办同步到系统日历</button>'
+    + '<div class="tip blue">文字走 Android 标准分享协议，微信 / OPPO 便签 / Keep / 印象笔记都能接；日历走 CalendarContract，单条免权限、批量需授权。微信未开放「直接发到某个聊天」，转发时会先到微信的「选择聊天」。</div>'
+
+    + '<div class="sec">打通与分发 · 飞书 / 钉钉群机器人</div>'
+    + '<div class="tip blue" style="margin-top:0;">飞书群：设置 → 群机器人 → 添加「自定义机器人」→ 复制 Webhook；钉钉群：群设置 → 智能群助手 → 自定义机器人。开了「加签」就把密钥一起填进来。</div>'
+    + '<div class="field" style="margin-top:8px;"><label>飞书 Webhook</label><input placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/…" /></div>'
+    + '<div class="field"><label>飞书加签密钥</label><input type="password" placeholder="开了签名校验才需要填" /></div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<div class="btn" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;" onclick="alert(&quot;已向飞书群发送测试消息&#10;到群里看看有没有收到（原型演示）&quot;)">保存并测试</div>'
+    + '<div class="btn ghost" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;background:#fff;color:#6C7C78;border:1px solid #E8E8E8;" onclick="alert(&quot;已推送最近 3 条记录到飞书群（只发摘要 + 待办，不发逐字稿）&quot;)">推送最近记录</div>'
+    + '</div>'
+    + '<div class="field" style="margin-top:14px;"><label>钉钉 Webhook</label><input placeholder="https://oapi.dingtalk.com/robot/send?access_token=…" /></div>'
+    + '<div class="field"><label>钉钉加签密钥</label><input type="password" placeholder="开了加签才需要填" /></div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<div class="btn" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;" onclick="alert(&quot;已向钉钉群发送测试消息&#10;若报 310000：检查安全设置的关键词是否为「草记」，或把加签密钥填上&quot;)">保存并测试</div>'
+    + '<div class="btn ghost" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;background:#fff;color:#6C7C78;border:1px solid #E8E8E8;" onclick="alert(&quot;已推送最近 3 条记录到钉钉群&quot;)">推送最近记录</div>'
+    + '</div>'
+    + '<div class="tip">只发摘要与待办，不发原始逐字稿：群里没人读几千字，也容易过度外泄。记录详情页的「发送到」里也会多出「推送到飞书群 / 钉钉群」两项（已配置时才出现）。</div>'
+
+    + '<div class="sec">接入录音设备与 WorkBuddy</div>'
+    + '<div class="tip blue">三种进法任选：① 在钉钉闪记 / 飞书妙记 / 微信「文件」里点「分享 → 草记」；② 先导出音频或文稿，点下面按钮导入；③ 系统通话录音在最上面扫描。支持 m4a/mp3/wav/aac/amr/ogg/flac 与 txt/md/srt/vtt/json/docx。</div>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'打开系统文件选择器（多选）&#10;· 音频 → 拷进私有目录 → 排队转写&#10;· 转写稿(srt/vtt/txt/docx/json) → 解析后直接出摘要，跳过转写&#10;（原型演示）\')">导入录音或转写稿</button>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'选一个目录（如 Documents/Caoji）&#10;之后每条记录写成 草记/caoji-日期-编号.md 并更新 caoji-index.json&#10;电脑上的 WorkBuddy 直接读这个文件夹（原型演示）\')">绑定 WorkBuddy 目录</button>'
+    + '<div class="switchrow"><span>整理完成后自动写入该目录</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div style="display:flex;gap:8px;margin-top:8px;">'
+    + '<div class="btn" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;" onclick="alert(\'已同步 12 条记录到 草记/（原型演示）\')">立即同步全部</div>'
+    + '<div class="btn ghost" style="flex:1;margin:0;height:42px;line-height:42px;font-size:13px;background:#fff;color:#6C7C78;border:1px solid #E8E8E8;" onclick="alert(\'已复制最近 10 条记录（含整理指令）&#10;打开 WorkBuddy 对话直接粘贴即可（原型演示）\')">复制给 WorkBuddy</div>'
+    + '</div>'
+    + '<div class="field" style="margin-top:10px;"><label>Webhook 地址（https://…，可选）</label><input placeholder="https://your-server/caoji" /></div>'
+    + '<button class="mainbtn" style="height:42px;font-size:13px;background:#fff;color:var(--brand);border:1px solid var(--brand);margin-bottom:8px;" onclick="alert(\'POST 与 caoji-index.json 同结构的 JSON&#10;可带 Authorization: Bearer <token>（原型演示）\')">推送最近记录到 Webhook</button>'
+
+    + '<div class="tip">通话与微信语音说明：Android 系统不允许第三方 App 录制通话对端声音，也不允许录制微信语音通话。本应用通过读取手机自带「通话录音」文件来记录通话内容；微信语音目前无法获取音频。</div>'
+
+    + '<div class="sec">隐私与安全</div>'
+    + '<div class="switchrow"><span>禁止截屏与最近任务预览</span><div class="sw on" onclick="this.classList.toggle(&apos;on&apos;)"></div></div>'
+    + '<div class="tip blue">API Key、机器人密钥、声纹模板都用系统密钥库（Keystore）AES-256-GCM 加密后落库；云备份与换机克隆已关闭。</div>'
+
+    + '<div class="sec">关于与法务</div>'
+    + '<div class="tip blue" style="margin-top:0;">草记 v1.20 · 本地优先 · 无广告与埋点</div>'
+    + '<div class="field" style="margin-top:10px;"><label>作者反馈邮箱</label>'
+    + '<div style="font-size:16px;font-weight:700;color:var(--brand);padding:6px 0;">sansimon2001@163.com</div></div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<div class="btn" style="flex:1;margin:0;height:44px;line-height:44px;font-size:13px;" onclick="alert(&quot;打开邮件应用，主题已带版本号，正文自动附上机型与版本（原型演示）&quot;)">写邮件反馈</div>'
+    + '<div class="btn ghost" style="flex:1;margin:0;height:44px;line-height:44px;font-size:13px;background:#fff;color:#6C7C78;border:1px solid #E8E8E8;" onclick="alert(&quot;邮箱已复制：sansimon2001@163.com&quot;)">复制邮箱</div>'
+    + '</div>'
+    + '<button class="mainbtn" style="height:46px;font-size:13px;background:#fff;color:var(--brand-dark);border:1px solid var(--brand);margin-top:10px;" onclick="openLegal()">用户协议与免责声明</button>'
+    + '<div class="tip">钉钉、飞书、企业微信、微信、Android 等名称与标识归其各自权利人所有。本应用通过公开的分享协议与群机器人接口接入，属独立第三方工具，与其无隶属、合作、代理或背书关系。</div>';
+}
+
+// v1.18：免责声明（原型里用弹层演示，真机是独立页面，全文离线内置）
+function openLegal() {
+  alert(
+    '草记 · 用户协议与免责声明（摘要）\n\n' +
+    '1. 软件按「现状」提供，不对准确性、可靠性作担保；不是法律、财税、医疗、投资建议。\n' +
+    '2. 录音是否合法由使用者负责：录音前请取得在场人员必要同意，遵守当地法律与单位制度。\n' +
+    '3. AI 转写与摘要可能出错（漏字、错配、幻觉），金额/期限/责任等关键信息以原始录音或书面文件为准。\n' +
+    '4. 第三方服务（转写、大模型、飞书、钉钉）由各自运营方提供，其账号、计费、数据与服务中断与本应用无关。\n' +
+    '5. 记录默认只存本机；请自行导出备份，数据丢失不承担赔偿。\n' +
+    '6. 商标声明：钉钉、飞书、企业微信、微信、Android 归各自权利人，本应用为独立第三方工具，无隶属或背书关系。\n' +
+    '7. 责任限制：累计赔偿以实际支付金额为限（免费软件为 0），不排除法定不得排除的责任。\n' +
+    '8. 适用中华人民共和国法律。\n\n' +
+    '全文见 docs/legal-disclaimer.md，或真机「设置 → 关于与法务」。\n' +
+    '反馈邮箱：sansimon2001@163.com'
+  );
+}
+
+function pickLlmProvider(idx) {
+  window.__llmProvIdx = idx;
+  renderSettings();
+}
+
+function tab(i) {
+  currentTab = i;
+  ['pageToday','pageProjects','pageInsight','pageSettings'].forEach((id, idx) => {
+    $(id).style.display = idx === i ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav button').forEach((b, idx) => b.classList.toggle('on', idx === i));
+  $('bottomBar').style.display = i === 0 ? 'block' : 'none';
+  renderAll();
+}
+
+function renderAll() { renderToday(); renderProjects(); renderInsight(); renderSettings(); renderSourceUi(); }
+
+// v1.16：手动切换音源（对应真机今日页底部「音源」两个选项）
+function pickSource(bt) {
+  if (bt && !headset) { alert('蓝牙耳机未连接：连上后再选它，或继续用手机麦克风。'); return; }
+  if (bt === micBt) return;
+  micBt = bt;
+  renderSourceUi();
+  if (recording) {
+    alert('已切换到' + (bt ? '蓝牙耳机麦克风' : '手机麦克风') + '。\n真机上当前这段会先单独保存，紧接着用新音源继续录，一句都不会丢。');
+  }
+}
+
+function renderSourceUi() {
+  if (!$('chipPhone')) return;
+  $('chipPhone').classList.toggle('on', !micBt);
+  $('chipBt').classList.toggle('on', micBt);
+  $('chipBt').classList.toggle('dim', !headset);
+  $('srcState').textContent = recording
+    ? '录音中 · 当前用' + (micBt ? '耳机麦' : '手机麦')
+    : (micBt ? '耳机麦（连耳机自动开始）' : (headset ? '已连耳机 · 也可自动开始' : ''));
+}
+
+function toggleRec() {
+  if (!recording) {
+    // v1.16：只有「蓝牙耳机麦克风」才必须先连耳机；手机麦克风随时可以手动开始
+    if (micBt && !headset) { alert('当前音源是蓝牙耳机麦克风，但耳机没连。\n先点右上角「耳机未连接」模拟连接，或把音源切到手机麦克风。'); return; }
+    recording = true; recSec = 0;
+    $('btnRec').textContent = '结束记录';
+    $('btnRec').classList.add('stop');
+    $('recbar').classList.add('show');
+    recTimer = setInterval(() => {
+      recSec++;
+      $('rectext').textContent = `正在记录 ${String(Math.floor(recSec/60)).padStart(2,'0')}:${String(recSec%60).padStart(2,'0')}`;
+    }, 1000);
+  } else {
+    recording = false;
+    clearInterval(recTimer);
+    $('btnRec').textContent = '开始记录';
+    $('btnRec').classList.remove('stop');
+    $('recbar').classList.remove('show');
+    const now = new Date();
+    DATA.sessions.unshift({
+      id: Date.now(), time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+      dur: `${recSec}秒`, source: 'live', marked: false, status: '待转写',
+      title: '新记录（待转写）', project: '',
+      summary: '待转写（配置转写接口后自动处理）', todos: [], transcript: ''
+    });
+    renderAll();
+  }
+}
+
+function markPoint() {
+  if (!recording) return;
+  const s = DATA.sessions[0];
+  s.marked = true;
+  alert('已标记重点（第 ' + (recSec) + ' 秒）');
+}
+
+function openDetail(id) {
+  const s = DATA.sessions.find(x => x.id === id);
+  if (!s) return;
+  // v1.19：方言稿可切换「普通话版 / 原话」，默认显示普通话版（更好读）
+  const useStd = !!s.std && stdView[s.id] !== false;
+  const shown = useStd ? s.std : s.transcript;
+  // v1.20：项目从「一行文字」升级成可点击的归属条，下面摊开 AI 的判断依据
+  const conf = s.projectConf || 0;
+  const projLabel = !s.project
+    ? '项目：未归属 · 点击指定'
+    : (conf > 0 && conf < 0.6
+        ? `项目：${esc(s.project)}（待确认）· 点击修改`
+        : `项目：${esc(s.project)} · 点击修改`);
+  const projHtml = `
+    <div class="projchip" onclick="toggleProjPick(${s.id})">${projLabel}</div>
+    ${s.projectWhy ? `<div class="projwhy">${esc(s.projectWhy)}</div>` : ''}
+    ${projPick === s.id ? `<div class="projlist">
+      ${DATA.projects.map(p => `<div class="projitem" onclick="setProject(${s.id},'${p}')" ${p === s.project ? 'style="color:#0B8E80;font-weight:600;"' : ''}>${esc(p)}${p === s.project ? ' ✓' : ''}</div>`).join('')}
+      <div class="projitem" onclick="setProject(${s.id},'')" ${!s.project ? 'style="color:#0B8E80;font-weight:600;"' : ''}>不归属任何项目</div>
+      <div class="projitem" onclick="alert('真机：弹出输入框，新建后自动进项目档案，下次同类说法 AI 直接认得')">＋ 新建项目…</div>
+    </div>` : ''}`;
+
+  $('detailBody').innerHTML = `
+    <div style="font-size:18px;font-weight:700;">${esc(s.title)}</div>
+    <div class="meta">${s.time} · ${s.dur} · ${s.source === 'call' ? '通话录音' : (s.source === 'voice' ? '语音速记' : '耳机记录')} · ${s.status}</div>
+    ${projHtml}
+    <div class="sec">摘要</div>
+    <div class="box">${esc(s.summary).replace(/\n/g,'<br/>')}</div>
+    <div class="sec">待办（点日期可改到期日）</div>
+    ${s.todos.length ? s.todos.map((t, i) => {
+      const d = dueLabel(t);
+      // 一次会议跨项目时，待办自己带项目标签，避免把 A 的事当成 B 的
+      const pt = (t.p && t.p !== s.project) ? `「${esc(t.p)}」· ` : '';
+      return `
+      <div class="todo ${t.done ? 'done' : ''}">
+        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo(${s.id},${i},this.checked)" />
+        <div style="flex:1;">
+          <div class="ttext" style="font-size:13px;">${esc(t.t)}</div>
+          <div class="due" style="color:${d.color};" onclick="setDue(${s.id},${i})">${pt}${d.text}</div>
+        </div>
+      </div>`;
+    }).join('') : '<div class="box sec2">本次没有提取到待办</div>'}
+    <div class="sec">原始转写（已按说话人区分）</div>
+    ${s.lang ? `<div class="tip" style="background:#E4F6F2;color:#0B8E80;margin-bottom:8px;">识别语言：${esc(s.langLabel || s.lang)}${s.std ? ' · 已转普通话书面语' : ''}</div>` : ''}
+    ${s.std ? `<div style="margin-bottom:8px;"><button class="mainbtn ghost2" style="height:34px;line-height:34px;font-size:12px;margin:0;padding:0 14px;" onclick="toggleStd(${s.id})">${useStd ? '查看原话' : '查看普通话版'} ›</button></div>` : ''}
+    <div class="box sec2">${shown
+      ? esc(shown).replace(/\[我\]/g, '<span class="role-me">[我]</span>').replace(/\[(?:对方|對方)[0-9]*\]/g, '<span class="role-other">[对方]</span>').replace(/\n/g, '<br/>')
+      : '暂无转写文本'}</div>
+    <div class="sec">整理与分发</div>
+    <div style="display:flex;gap:8px;">
+      <button class="mainbtn ghost2" style="flex:1;height:40px;font-size:12px;margin:0;" onclick="alert('已复制全文，可直接粘贴到微信或便签')">复制全文</button>
+      <button class="mainbtn ghost2" style="flex:1;height:40px;font-size:12px;margin:0;" onclick="alert('打开系统文件选择器，保存为 .md 文稿')">导出文稿</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="mainbtn ghost2" style="flex:1;height:40px;font-size:12px;margin:0;" onclick="alert('拉起微信「选择聊天」界面，选联系人后发出（微信未开放直接发送接口）')">转发微信</button>
+      <button class="mainbtn ghost2" style="flex:1;height:40px;font-size:12px;margin:0;" onclick="alert('列出本机可接收文字的便签 / 笔记应用，点一下直达')">存到便签</button>
+    </div>
+    <div style="text-align:center;font-size:12px;color:#B0000E;margin-top:10px;">把待办加入系统日历（不需要权限）</div>
+    <div class="tip blue" style="margin-top:8px;">同一份文稿：可复制、存 .md、转发微信、存进系统便签；待办还能一键写进系统日历。</div>
+    <button class="mainbtn" style="height:44px;font-size:14px;margin:16px 0 24px;" onclick="alert('已加入处理队列（原型演示）')">重新分析</button>`;
+  $('detail').classList.add('show');
+}
+function closeDetail() { $('detail').classList.remove('show'); }
+
+// ===== v1.20 项目归属交互（原型演示）=====
+// 真机上：点开是「相关项目在前 + 全量档案 + 现场新建」，
+// 选完立刻落库，并把这次的叫法记进项目档案的线索词里。
+let projPick = null;
+function toggleProjPick(id) { projPick = (projPick === id) ? null : id; openDetail(id); }
+function setProject(id, name) {
+  const s = DATA.sessions.find(x => x.id === id);
+  if (!s) return;
+  s.project = name;
+  s.projectConf = name ? 1 : 0;
+  s.projectWhy = name ? '手动指定（已记入项目档案，下次同类说法会自动归到这里）' : '已手动清除归属';
+  projPick = null;
+  openDetail(id);
+  renderToday();
+  renderProjects();
+}
+// v1.19：方言稿「普通话版 / 原话」切换状态（真机上默认显示普通话版，可随时切回原话）
+let stdView = {};
+function toggleStd(id) {
+  stdView[id] = stdView[id] === false;
+  openDetail(id);
+}
+function toggleTodo(sid, idx, val) {
+  const s = DATA.sessions.find(x => x.id === sid);
+  if (s) { s.todos[idx].done = val; renderAll(); openDetail(sid); }
+}
+function openVoice() {
+  $('voiceSheet').classList.add('show');
+  $('voiceBody').style.display = 'block';
+  $('voiceResult').style.display = 'none';
+  $('voiceResult').innerHTML = '';
+}
+
+function closeVoice() {
+  $('voiceSheet').classList.remove('show');
+}
+
+function voiceStart() {
+  const btns = document.querySelectorAll('.holdBtn');
+  btns.forEach(function(b){ b.textContent = '正在听… 松开发送'; });
+}
+
+function voiceStop() {
+  const btns = document.querySelectorAll('.holdBtn');
+  btns.forEach(function(b){ b.textContent = '按住说话'; });
+  // 随机演示两种意图
+  const isQuestion = Math.random() < 0.5;
+  if (isQuestion) {
+    $('voiceResult').innerHTML = ''
+      + '<div class="tag warn" style="display:inline-block;">即时问答</div>'
+      + '<div class="box" style="margin-top:8px;">'
+      + '<div style="font-size:12px;color:#9AA0A6;">识别到：</div>'
+      + '<div style="margin-top:4px;">这个月 3 号楼的回款怎么算？</div>'
+      + '<div style="font-size:12px;color:#9AA0A6;margin-top:10px;">回答：</div>'
+      + '<div style="margin-top:4px;">按销售合同已收金额统计，只算已到账的回款，不含意向金。'
+      + '3 号楼本月已收 320 万，占应收的 41%，还差 460 万。<br/>下一步：先催已过约定期限的 2 笔（共 180 万）。</div>'
+      + '</div>'
+      + '<button class="mainbtn" style="height:42px;margin-top:10px;font-size:13px;" onclick="saveVoiceAsRecord(true)">存为记录</button>';
+  } else {
+    $('voiceResult').innerHTML = ''
+      + '<div class="tag" style="display:inline-block;">灵感笔记</div>'
+      + '<div class="box" style="margin-top:8px;">'
+      + '<div style="font-size:12px;color:#9AA0A6;">识别到：</div>'
+      + '<div style="margin-top:4px;">明天记得催璟珹物业把 9 月发票开出来，顺便问 10 月单价审批到哪了。</div>'
+      + '</div>'
+      + '<div class="tip" style="margin-top:10px;">已自动存为「重点」记录，可在「今日」时间线看到。</div>'
+      + '<button class="mainbtn" style="height:42px;margin-top:10px;font-size:13px;" onclick="saveVoiceAsRecord(false)">查看今日</button>';
+  }
+  $('voiceResult').style.display = 'block';
+}
+
+function saveVoiceAsRecord(isQa) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  DATA.sessions.unshift({
+    id: Date.now(),
+    time: hh + ':' + mm,
+    dur: '6秒',
+    source: 'voice',
+    marked: true,
+    status: '已整理',
+    title: isQa ? '问答：3 号楼回款怎么算' : '明天记得催发票与单价审批',
+    project: isQa ? '虞懋府招商' : '',
+    summary: isQa
+      ? '按销售合同已收金额统计，本月 3 号楼已收 320 万，占应收 41%。'
+      : '灵感：明天催璟珹物业开 9 月发票，并跟进 10 月单价审批进度。',
+    todos: isQa ? [] : [{ t: '催 9 月发票', done: false, due: '2026-10-22' }],
+    transcript: isQa ? '[我] 这个月 3 号楼的回款怎么算？' : '[我] 明天记得催物业开 9 月发票，顺便问 10 月单价审批到哪了。'
+  });
+  closeVoice();
+  renderAll();
+  tab(0);
+}
+
+function openProjectDetail(name) {
+  const list = DATA.sessions.filter(function(s){ return s.project === name; });
+  const insight = name === '虞懋府招商'
+    ? '【当前进展】3 号楼 24 套在售、8 套在谈，本月已收 320 万（占应收 41%）。\n'
+      + '【关键决定】定价维持 1.68 万/㎡，不公开调价；大客户留 3% 折扣空间。\n'
+      + '【卡点与风险】样板间交付日期未定，对方已两次追问；工程侧尚未给出准日子。\n'
+      + '【下一步】1）10 月底前收齐 8 套意向金；2）本周内让工程出样板间交付日期；3）补齐大客户折扣审批口径。'
+    : '【当前进展】9 月结算 4.28 万已确认，发票待开；10 月单价上调 5% 待审批。\n'
+      + '【关键决定】发票本周五前开出；10 月新单价需重新走审批。\n'
+      + '【卡点与风险】审批流程未启动，可能影响 10 月结算。\n'
+      + '【下一步】1）催发票；2）本周提交单价审批。';
+
+  let html = ''
+    + '<div style="font-size:18px;font-weight:700;">' + esc(name) + '</div>'
+    + '<div class="meta">' + list.length + ' 段记录 · 主题时间线</div>'
+    + '<div class="sec">洞见卡片</div>'
+    + '<div class="box" style="white-space:pre-wrap;">' + esc(insight) + '</div>'
+    + '<button class="mainbtn ghost2" style="width:100%;height:42px;margin-top:10px;font-size:13px;" '
+    + 'onclick="alert(&quot;洞见卡片已重新生成（原型演示）&quot;)">生成 / 更新洞见卡片</button>'
+    + '<div class="sec">主题时间线</div>';
+
+  list.forEach(function(x){
+    html += '<div class="card" onclick="openDetail(' + x.id + ')">'
+      + '<div class="row"><span class="time">' + x.time + '</span>'
+      + '<span class="tag">' + (x.source === 'call' ? '通话' : (x.source === 'voice' ? '语音速记' : '耳机记录')) + '</span>'
+      + (x.marked ? '<span class="tag warn">重点</span>' : '')
+      + '<span class="dur">' + x.dur + '</span></div>'
+      + '<div class="title">' + esc(x.title) + '</div>'
+      + '<div class="summary">' + esc(x.summary.split('【洞察】')[0].trim()) + '</div></div>';
+  });
+
+  $('detailBody').innerHTML = html;
+  $('detail').classList.add('show');
+}
+
+function dueLabel(t) {
+  if (!t.due) return { text: '设置到期日 ›', color: '#9AA0A6' };
+  if (t.done) return { text: '到期 ' + t.due, color: '#9AA0A6' };
+  if (t.due < TODAY) return { text: '已逾期 · ' + t.due, color: '#E60012' };
+  if (t.due === TODAY) return { text: '今天到期 · ' + t.due, color: '#F59E0B' };
+  return { text: '到期 ' + t.due, color: '#6B7280' };
+}
+
+function setDue(sid, idx) {
+  const s = DATA.sessions.find(x => x.id === sid);
+  if (!s) return;
+  const cur = s.todos[idx].due || TODAY;
+  const v = prompt('设置到期日（YYYY-MM-DD，留空清除）', cur);
+  if (v === null) return;
+  s.todos[idx].due = v.trim();
+  renderAll();
+  openDetail(sid);
+}
+
+function showProject(name) {
+  const list = DATA.sessions.filter(s => s.project === name);
+  alert(name + '\n\n' + list.map(s => `${s.time} · ${s.title}`).join('\n'));
+}
+
+// 模拟蓝牙耳机连接/断开
+$('chip').onclick = () => {
+  headset = !headset;
+  $('chip').textContent = headset ? '耳机已连接' : '耳机未连接';
+  $('chip').classList.toggle('on', headset);
+  if (headset) {
+    setTimeout(() => {
+      if (!recording) {
+        alert('检测到蓝牙耳机已连接 → 自动开始记录（这正是你要的触发机制）');
+        toggleRec();
+      }
+    }, 300);
+  } else if (recording) {
+    // v1.16：耳机断开只结束「耳机麦」的记录；手机麦与耳机无关，继续录
+    if (micBt) toggleRec();
+    else alert('耳机断开了，手机麦克风记录继续（耳机状态不影响手机麦）。');
+  }
+  renderSourceUi();
+};
+
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  中性化配色：灰为主色，正红作唯一强调色
+  - 背景/卡片/文字全部用中性灰阶，不做彩色化
+  - 正红只出现在「品牌顶栏 / 主按钮 / 录音中 / 重点标记」这些需要被一眼看到的地方
+-->
+<resources>
+    <!-- 中性灰阶 -->
+    <color name="bg_page">#FFFFFF</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="card_stroke">#E8E8E8</color>
+
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6B6B6B</color>
+    <color name="text_hint">#9E9E9E</color>
+
+    <!-- 正红（品牌 / 强调） -->
+    <color name="brand">#E60012</color>
+    <color name="brand_dark">#B0000E</color>
+    <color name="brand_light">#FDECEE</color>
+    <!-- 重点标记：同色系不同明度（浅红底 + 深红字），不引入第三种彩色 -->
+    <color name="mark">#E60012</color>
+    <color name="mark_light">#FDECEE</color>
+
+    <color name="recording">#E60012</color>
+    <color name="success">#4A4A4A</color>
+    <color name="warn">#E60012</color>
+    <color name="divider">#EDEDED</color>
+    <color name="ic_launcher_bg">#E60012</color>
+    <color name="statusbar">#B0000E</color>
+</resources>

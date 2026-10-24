@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 标签 chip 的可点击版本：浅红底 + 涟漪 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33E60012">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brand_light" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</ripple>

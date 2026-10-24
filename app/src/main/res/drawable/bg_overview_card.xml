@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 状态概览卡：浅红渐变到白，作为设置页第一眼的「仪表盘」 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#FFF3F4"
+        android:endColor="#FFFFFF" />
+    <corners android:radius="20dp" />
+    <stroke android:width="1dp" android:color="#FADCDE" />
+</shape>

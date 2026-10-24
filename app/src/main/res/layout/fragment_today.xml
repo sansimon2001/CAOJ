@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 今日：心力球式时间线（日期分组 + 卡片流） -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 日期分组头 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/tvDateTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="今天"
+            android:textColor="@color/text_primary"
+            android:textSize="23sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvTodayStats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="0 段记录"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <!--
+          状态提示改成独占一行：
+          原来它挤在标题右边（wrap_content 的胶囊），文案一长（比如「还没填 API Key…」）
+          就把标题压得只剩两三个字，甚至被裁掉。独占一行后多长的提示都读得完。
+        -->
+        <TextView
+            android:id="@+id/tvConnectTip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:background="@drawable/bg_tag"
+            android:lineSpacingExtra="2dp"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:paddingHorizontal="11dp"
+            android:paddingVertical="7dp"
+            android:text="@string/idle_hint"
+            android:textColor="@color/brand_dark"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSessions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="14dp"
+            android:paddingBottom="14dp" />
+
+        <TextView
+            android:id="@+id/tvEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:lineSpacingExtra="7dp"
+            android:text="@string/empty_today"
+            android:textColor="@color/text_hint"
+            android:textSize="13sp" />
+    </FrameLayout>
+
+    <!-- 底部操作：音源选择 + 按住说话 + 开始记录 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/card_bg"
+        android:elevation="6dp"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="14dp">
+
+        <!-- 音源：手动指定这次用手机麦克风还是耳机麦克风（连耳机自动触发时也按这里的选择） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mic_source_title"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMicPhone"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="9dp"
+                android:background="@drawable/bg_chip_selected"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="@string/mic_phone"
+                android:textColor="@color/brand_dark"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/chipMicBt"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_marginStart="7dp"
+                android:background="@drawable/bg_chip_normal"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="@string/mic_bt"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvSourceState"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text=""
+                android:textColor="@color/text_hint"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnQuickVoice"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:text="按住说话"
+                android:textColor="@color/brand_dark"
+                android:textSize="14sp"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/brand" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleRecord"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1.5"
+                android:text="@string/start_record"
+                android:textSize="15sp"
+                app:backgroundTint="@color/brand"
+                app:cornerRadius="26dp" />
+        </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

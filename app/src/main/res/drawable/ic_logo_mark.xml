@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  品牌徽章（v1.22）
+
+  ── 为什么要改 ────────────────────────────────────────────────
+  v1.21 的做法是「白色玻璃圆环托底 + 1dp 白描边 + 内缩的红方块」。
+  方压在圆里、红压在红上，结果在红顶栏上只剩两样东西：
+  一条白线（描边）和一个内框（内缩的红方块），标本身还是平的。
+
+  ── 现在的做法 ────────────────────────────────────────────────
+  不再套任何外环，让徽章自己就是一块有体积的「珐琅片」：
+    1) 落影   4 层同心缩放 + 下移，模拟柔光投影
+              （矢量图没有 blur，只能靠多层低透明度叠出边缘过渡；
+                用偏红黑 #4A0003 而不是纯黑——纯黑落在红底上会发灰发脏）
+    2) 底板   竖向三段渐变 亮红 → 正红 → 深红，上表面受光、下缘收暗
+    3) 顶光   顶部 36% 叠一层白色渐隐，模拟光打在圆弧顶端
+    4) 底压   底部 55% 之后渐变压暗，让下缘「沉」进去
+    5) 边光   只在上缘留一条渐隐细高光（**不是**一圈白线，48% 处已收掉）
+    6) 字母   白 C + 一笔下沉 2 单位的同色系阴影，字从底板上浮起来
+
+  ── 几何 ──────────────────────────────────────────────────────
+  视口 120×120，板面 100×100（左上 10,8），圆角 25（0.25×板宽）。
+  四周留 10 单位余量给落影，避免被视口裁掉。
+  C 的外径/内径 = 28.2 / 15.87（板宽的 0.282 / 0.159），开口朝右 ±50°，
+  与桌面图标（ic_launcher.xml、ic_launcher_foreground.xml）同一字形。
+
+  参数与 docs/logo-badge-mock.py 的对比图一一对应，改一边记得同步另一边。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- ============ 1) 落影：4 层，越靠外越淡 ============ -->
+    <group
+        android:pivotX="60"
+        android:pivotY="58"
+        android:scaleX="1.092"
+        android:scaleY="1.092"
+        android:translateY="3.4">
+        <path
+            android:fillColor="#0C4A0003"
+            android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" />
+    </group>
+    <group
+        android:pivotX="60"
+        android:pivotY="58"
+        android:scaleX="1.064"
+        android:scaleY="1.064"
+        android:translateY="2.7">
+        <path
+            android:fillColor="#114A0003"
+            android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" />
+    </group>
+    <group
+        android:pivotX="60"
+        android:pivotY="58"
+        android:scaleX="1.040"
+        android:scaleY="1.040"
+        android:translateY="2.1">
+        <path
+            android:fillColor="#184A0003"
+            android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" />
+    </group>
+    <group
+        android:pivotX="60"
+        android:pivotY="58"
+        android:scaleX="1.018"
+        android:scaleY="1.018"
+        android:translateY="1.5">
+        <path
+            android:fillColor="#224A0003"
+            android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z" />
+    </group>
+
+    <!-- ============ 2) 底板：竖向三段渐变 ============ -->
+    <path android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="8"
+                android:endX="0"
+                android:endY="108">
+                <item android:offset="0.0" android:color="#F0372A" />
+                <item android:offset="0.40" android:color="#E00111" />
+                <item android:offset="1.0" android:color="#98000A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ============ 3) 顶光：36% 处完全收掉 ============ -->
+    <path android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="8"
+                android:endX="0"
+                android:endY="108">
+                <item android:offset="0.0" android:color="#36FFFFFF" />
+                <item android:offset="0.20" android:color="#16FFFFFF" />
+                <item android:offset="0.36" android:color="#00FFFFFF" />
+                <item android:offset="1.0" android:color="#00FFFFFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ============ 4) 底压：55% 之后逐渐压暗 ============ -->
+    <path android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="8"
+                android:endX="0"
+                android:endY="108">
+                <item android:offset="0.0" android:color="#003A0004" />
+                <item android:offset="0.55" android:color="#003A0004" />
+                <item android:offset="1.0" android:color="#4E3A0004" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ============ 5) 上缘边光：渐隐，48% 之后没有 ============ -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M35,8 H85 A25,25 0 0 1 110,33 V83 A25,25 0 0 1 85,108 H35 A25,25 0 0 1 10,83 V33 A25,25 0 0 1 35,8 Z"
+        android:strokeWidth="1.6">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="8"
+                android:endX="0"
+                android:endY="108">
+                <item android:offset="0.0" android:color="#80FFFFFF" />
+                <item android:offset="0.30" android:color="#33FFFFFF" />
+                <item android:offset="0.48" android:color="#00FFFFFF" />
+                <item android:offset="1.0" android:color="#00FFFFFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ============ 6) 字母 C：先落一笔阴影，再压白字 ============ -->
+    <path
+        android:fillColor="#424A0003"
+        android:pathData="M78.13,38.80 A28.2,28.2 0 1 0 78.13,82.00 L70.20,72.56 A15.87,15.87 0 1 1 70.20,48.24 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M78.13,36.40 A28.2,28.2 0 1 0 78.13,79.60 L70.20,70.16 A15.87,15.87 0 1 1 70.20,45.84 Z" />
+</vector>

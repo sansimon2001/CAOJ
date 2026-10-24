@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>草记 · 隐私政策</title>
+<style>
+  :root{--brand:#E60012;--ink:#1A1A1A;--sub:#6B6B6B;--line:#EDEDED;--bg:#FFFFFF}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.85 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 22px 80px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:.5px}
+  .meta{color:var(--sub);font-size:13px;margin-bottom:32px}
+  h2{font-size:18px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+  h3{font-size:15px;margin:22px 0 6px}
+  p,li{font-size:15px;color:#333}
+  ul{padding-left:22px}
+  li{margin:6px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#FAFAFA;font-weight:600;width:34%}
+  .hl{background:#FFF5F6;border-left:3px solid var(--brand);padding:12px 14px;margin:16px 0;font-size:14px}
+  .hl b{color:var(--brand)}
+  code{background:#F5F5F5;padding:1px 5px;border-radius:4px;font-size:13px}
+  footer{margin-top:44px;color:var(--sub);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>草记 隐私政策</h1>
+  <div class="meta">生效日期：2026 年 10 月 22 日　|　适用版本：草记 Android 客户端</div>
+
+  <div class="hl">
+    <b>一句话说清：</b>草记默认只在你的手机上处理和保存录音与文字，
+    <b>不向我们的任何服务器发送</b>。只有当你自己配置了第三方语音转写或大模型接口后，
+    处理某条记录时的那一段音频或文本才会发送到<b>你指定的那家服务商</b>。
+  </div>
+
+  <h2>一、我们处理哪些信息</h2>
+
+  <table>
+    <tr><th>信息类型</th><th>内容与用途</th></tr>
+    <tr>
+      <td>录音音频</td>
+      <td>由你主动开始记录，或连接蓝牙耳机后自动开始录制。用于本地转写与生成摘要。
+          默认在转写完成后删除原音（可在设置中选择保留）。</td>
+    </tr>
+    <tr>
+      <td>转写文本、摘要、待办、项目归类、洞察</td>
+      <td>由录音转写与你在应用中手动编辑产生，用于「今日」「项目」「觉察」等页面的展示与提醒。</td>
+    </tr>
+    <tr>
+      <td>应用配置</td>
+      <td>你填写的接口地址、模型名、API Key，以及声纹模板、提醒时间等设置项。</td>
+    </tr>
+    <tr>
+      <td>运行日志（仅本机）</td>
+      <td>程序异常时写入应用私有目录的一小段错误堆栈，用于定位崩溃原因，<b>不含</b>录音与转写正文。</td>
+    </tr>
+  </table>
+
+  <p><b>我们不收集：</b>手机号、通讯录、短信、精确位置、设备识别码（IMEI / OAID / Android ID）、
+  已安装应用列表、剪贴板内容，也不含任何广告或统计分析 SDK。</p>
+
+  <h2>二、信息保存在哪里</h2>
+  <ul>
+    <li>录音、转写、摘要、待办与配置，全部保存在<b>应用私有目录</b>（Android 沙箱），其他应用无法读取。</li>
+    <li>API Key 与声纹模板使用 <b>Android 系统密钥库（Keystore）</b> 中的 AES-256-GCM 密钥加密后存储；
+        该密钥由系统托管、不可导出，也不随任何备份迁移。</li>
+    <li>本应用已<b>关闭云备份与换机克隆</b>，私人录音不会被系统复制到云端或另一台设备。</li>
+    <li>卸载应用即删除上述全部数据（包括密钥材料）。</li>
+  </ul>
+
+  <h2>三、什么时候会联网</h2>
+  <p>以下动作<b>只在你主动配置并触发时</b>发生，且目标地址是<b>你自己填写的</b>第三方接口：</p>
+  <ul>
+    <li><b>语音转写</b>：把该条记录的音频文件发送给你配置的转写服务（如硅基流动 SenseVoice）。</li>
+    <li><b>摘要 / 待办 / 洞察 / 复盘</b>：把该条记录的转写文本发送给你配置的大模型服务。</li>
+    <li><b>连通性测试</b>：在设置页点击「测试连接」时，发送一次极短请求以验证地址与 Key 是否可用。</li>
+  </ul>
+  <p>接口地址<b>强制使用 https</b>，明文 HTTP 请求会被应用直接拒绝。
+     数据到达上述服务商后，其处理行为受该服务商自己的隐私政策约束，请你自行了解并选择可信的服务商。</p>
+
+  <h2>四、权限与用途</h2>
+  <table>
+    <tr><th>权限</th><th>用途</th></tr>
+    <tr><td>麦克风（RECORD_AUDIO）</td><td>录制你要记录的对话与语音速记。仅在你开始记录时使用。</td></tr>
+    <tr><td>蓝牙（BLUETOOTH_CONNECT 等）</td><td>检测蓝牙耳机连接状态，实现「戴上耳机自动开始记录、摘下自动结束」。</td></tr>
+    <tr><td>通知（POST_NOTIFICATIONS）</td><td>显示录音进行中的常驻通知与待办到期提醒。</td></tr>
+    <tr><td>音频/媒体读取（READ_MEDIA_AUDIO）</td><td><b>仅在你点击</b>「扫描系统通话录音并导入」时读取手机自带的通话录音文件，用于事后补录。不会后台扫描。</td></tr>
+    <tr><td>日历读写（READ/WRITE_CALENDAR）</td><td><b>仅在你点击</b>「同步待办到系统日历」时写入全天日程。单条加入日历通过系统日历的「新建日程」界面完成，不需要该权限。</td></tr>
+  </table>
+  <p>所有权限均在系统弹窗中由你逐项授权，拒绝不影响其他功能使用。</p>
+
+  <h2>五、录音的合规提醒</h2>
+  <div class="hl">
+    <b>重要：</b>记录他人对话前，请确认你已取得对话各方的同意，或该录音具有其他合法依据。
+    草记只提供技术能力，无法替你取得他人同意。因未取得同意而录音、传播所引发的法律责任，由使用者自行承担。
+  </div>
+
+  <h2>六、你的权利</h2>
+  <ul>
+    <li><b>查看与修改</b>：任意记录的摘要可直接编辑；说话人可改名；待办可改到期日。</li>
+    <li><b>导出</b>：单条或全部记录可导出为 Markdown 文件，也可复制、转发到你选择的应用。</li>
+    <li><b>删除</b>：可删除单条记录；设置页提供「清除本机全部数据」，一次性删除记录、待办、摘要、
+        录音文件与接口配置。</li>
+    <li><b>撤回授权</b>：可在系统设置中随时关闭麦克风、日历等权限。</li>
+  </ul>
+  <p>由于数据保存在你的设备上，我们<b>无法</b>远程查看或替你删除；删除操作需要你在应用内完成。</p>
+
+  <h2>七、未成年人</h2>
+  <p>草记面向成年人与职场使用者，不面向 14 周岁以下儿童。若你是未成年人，请在监护人指导下使用，
+     并由监护人阅读本政策。</p>
+
+  <h2>八、政策更新</h2>
+  <p>功能或合规要求变化时，我们可能更新本政策。更新后会在应用内以弹窗或设置页说明的方式提示，
+     并在本页面更新「生效日期」。若你不同意更新内容，可停止使用并卸载应用。</p>
+
+  <h2>九、联系我们</h2>
+  <p>对本政策或数据处理有任何疑问、投诉或删除请求，可通过以下方式联系：<br>
+     邮箱：<code>[请填写联系邮箱]</code><br>
+     我们会在收到后 15 个工作日内答复。</p>
+
+  <footer>
+    草记（Android 客户端）　开发者：[请填写开发者主体名称]<br>
+    本页面可直接托管为应用商店要求的「隐私政策链接」。
+  </footer>
+
+</div>
+</body>
+</html>

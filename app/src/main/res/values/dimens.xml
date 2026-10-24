@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ColorOS 17 / Aquamorphic 设计规范：大圆角 + 大留白 + 清晰字阶 -->
+<resources>
+    <!-- 间距（8 的倍数体系，页面留白更宽松） -->
+    <dimen name="space_s">8dp</dimen>
+    <dimen name="space_m">12dp</dimen>
+    <dimen name="space_l">16dp</dimen>
+    <dimen name="space_xl">20dp</dimen>
+    <dimen name="space_xxl">24dp</dimen>
+
+    <!-- 圆角（Aquamorphic 连续曲率感） -->
+    <!-- 字号 -->
+    <dimen name="text_caption">12sp</dimen>
+    <dimen name="text_micro">11sp</dimen>
+
+    <!-- 卡片 -->
+    <dimen name="card_padding_h">18dp</dimen>
+    <dimen name="page_margin">16dp</dimen>
+
+    <!-- 控件 -->
+    <dimen name="button_height">52dp</dimen>
+</resources>

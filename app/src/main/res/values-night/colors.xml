@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色模式：中性深灰底 + 提亮的正红（纯 #E60012 在深底上偏暗，用 #FF3B41） -->
+<resources>
+    <color name="bg_page">#121212</color>
+    <color name="card_bg">#1C1C1C</color>
+    <color name="card_stroke">#2A2A2A</color>
+
+    <color name="text_primary">#ECECEC</color>
+    <color name="text_secondary">#A8A8A8</color>
+    <color name="text_hint">#7A7A7A</color>
+
+    <color name="brand">#FF3B41</color>
+    <color name="brand_dark">#FF7A7E</color>
+    <color name="brand_light">#3A1416</color>
+    <color name="mark">#FF3B41</color>
+    <color name="mark_light">#3A1416</color>
+
+    <color name="recording">#FF3B41</color>
+    <color name="success">#C4C4C4</color>
+    <color name="warn">#FF3B41</color>
+    <color name="divider">#262626</color>
+    <color name="ic_launcher_bg">#E60012</color>
+    <color name="statusbar">#121212</color>
+</resources>

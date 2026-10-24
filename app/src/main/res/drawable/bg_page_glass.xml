@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  白色玻璃质感页面底
+  做法：纯白打底 + 两团极淡的柔光（右上一点正红、左下一点中性灰）
+  卡片用半透明白叠在上面 → 透出这层柔光，形成"磨砂玻璃"的层次。
+  没有用 Android 12 的实时背景模糊（setBackgroundBlurRadius）：那需要额外一帧渲染，
+  对长时间录音的省电没有好处，半透明 + 柔光在观感上已经足够。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+
+    <!-- 右上：极淡正红柔光 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.88"
+                android:centerY="0.06"
+                android:gradientRadius="520dp"
+                android:startColor="#14E60012"
+                android:endColor="#00E60012" />
+        </shape>
+    </item>
+
+    <!-- 左下：中性灰柔光，让玻璃有冷暖层次 -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.05"
+                android:centerY="0.95"
+                android:gradientRadius="560dp"
+                android:startColor="#12000000"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>
