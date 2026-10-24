@@ -83,7 +83,7 @@ git log --oneline   # 应能看到提交列表，条数 = 网页右上角 N comm
 | 页面左上 | `Owner` 下拉 | 选你自己的账号。属于组织才需要切换 |
 | 中上部 | `Repository name` | `caoji`。填完下方会出现 `Your new repository will be available at https://github.com/<你>/caoji`，这行就是最后要用的地址 |
 | 名字下方 | `Description (optional)` | 选填：`语音速记 → 待办，本地优先` |
-| 中间单选 | `Public` / `Private` | 见下方说明。默认 Private |
+| 中间单选 | `Public` / `Private` | 见下方说明。GitHub 会记住你上次的选择，新建的账号默认 Private |
 | 单选下方 | `Initialize this repository with:` 三个复选框 | **三个全部不要勾**（`Add a README file`、`Add .gitignore`、`Choose a license`） |
 | 右下 | 绿色按钮 `Create repository` | 点它 |
 
@@ -209,7 +209,7 @@ GitHub 会自动跑一次。
 4. 状态图标：黄色转圈 = 跑着，绿色对勾 = 通过，红色叉 = 失败。第一次约 3–6 分钟（要下 Gradle 依赖，偏慢）；
 5. 点进该条记录 → 左侧 `build` → 展开各步骤看日志。
 
-这一轮属于「验证编译能过」，产物在运行页底部 `Artifacts` 区，叫 `apk-1`，
+这一轮属于「验证编译能过」，产物在运行页底部 `Artifacts` 区，名字是 `apk-<运行编号>`，
 下载下来是**未签名**的（因为还没配 Secrets，见 B-7）。
 
 ---
