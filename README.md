@@ -115,13 +115,15 @@
 
 ## 五、下载与安装
 
-**最新版本 v1.22**（versionCode 22）· [下载 APK](https://github.com/sansimon2001/CAOJ/releases/latest) · [所有版本](https://github.com/sansimon2001/CAOJ/releases)
+**最新版本 v1.23**（versionCode 23）· [下载 APK](https://github.com/sansimon2001/CAOJ/releases/latest) · [所有版本](https://github.com/sansimon2001/CAOJ/releases)
 
-打开 Releases 页，在最新一版的 `Assets` 里点 `caoji-v1.22.apk`。
+打开 Releases 页，在最新一版的 `Assets` 里点 `caoji-v1.23.apk`。
+
+> 这一版与 v1.22 功能相同，只是版本号递增后重新出包；已装 v1.22 的可以直接覆盖升级。
 
 | 项 | 值 |
 |---|---|
-| 版本 | 1.22（versionCode 22） |
+| 版本 | 1.23（versionCode 23） |
 | 大小 | 约 5.4 MB |
 | 要求 | Android 8.0（API 26）及以上 |
 | 签名 | 正式签名，可直接覆盖升级；每次都同一张证书 |
