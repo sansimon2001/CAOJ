@@ -133,7 +133,7 @@ for c in cards:
     draw.text((cx, qy + QR + 100), c["tip"], font=font(REG, 23), fill=INK3, anchor="ma")
 
 # 底部
-draw.text((W // 2, 1272), "v1.23 · 5.4 MB · Android 8.0 及以上",
+draw.text((W // 2, 1272), "v1.24 · 5.4 MB · Android 8.0 及以上",
           font=font(REG, 30), fill=INK2, anchor="ma")
 draw.text((W // 2, 1332), "Android 端 · 无需注册 · 录音与转写数据不上传到我们的服务器",
           font=font(REG, 22), fill=INK3, anchor="ma")

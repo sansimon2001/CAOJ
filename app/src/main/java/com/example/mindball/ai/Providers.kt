@@ -157,6 +157,18 @@ object Providers {
             dialectNote = "Whisper 未对粤语做专门优化，但按普通话提示也能出粤语文本（常为繁体，App 会自动转简体）",
         ),
         AsrProvider(
+            id = "groq-whisper",
+            name = "Groq Whisper large-v3（最准｜需能访问境外服务）",
+            url = "https://api.groq.com/openai/v1/audio/transcriptions",
+            model = "whisper-large-v3",
+            supportsDiarize = false,
+            costNote = "Whisper 最大的一档模型，远场、口音、专业词下的错字明显少于轻量模型；有免费额度、速度极快",
+            requestLangs = setOf("zh", "en", "ja", "ko"),
+            acceptsAuto = true,
+            supportsPrompt = true,
+            dialectNote = "支持热词提示；粤语按普通话送也能输出粤语用字（常为繁体，App 会自动转简体）",
+        ),
+        AsrProvider(
             id = "custom-asr",
             name = "自定义（Whisper 兼容）",
             url = "",
@@ -208,6 +220,7 @@ object Providers {
         return when {
             u.contains("siliconflow") -> "siliconflow-asr"
             u.contains("openai.com") -> "openai-whisper"
+            u.contains("groq.com") -> "groq-whisper"
             else -> "custom-asr"
         }
     }

@@ -100,7 +100,7 @@ object AnalysisPipeline {
             } else if (session.lang.isBlank()) {
                 // 外部导入的转写稿：用当前设置推断语种，方便后续做方言归一化。
                 // 只记下来，不改写原文——别人的稿子不该被我们擅自改字。
-                session.lang = Repo.getStr(context, Repo.K_ASR_LANG, SpeechLangs.ID_AUTO)
+                session.lang = Repo.getStr(context, Repo.K_ASR_LANG, SpeechLangs.ID_ZH)
             }
 
             // 说话人 → 我 / 对方（先看声纹能否认出「我」，认不出再用设置里的「我是说话人几」）

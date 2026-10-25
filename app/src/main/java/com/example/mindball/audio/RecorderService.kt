@@ -440,8 +440,13 @@ class RecorderService : Service() {
             r.setAudioSource(source)
             r.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             r.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            // 采样率维持 44.1 kHz：本地声纹模板与音频环境分析都按这个采样率提取，
+            // 改 16 kHz 会让存量模板失配（用户得重录声纹），收益与风险不成正比。
             r.setAudioSamplingRate(44100)
-            r.setAudioEncodingBitRate(64_000)
+            // 码率从 64 kbps 提到 96 kbps：64 kbps 单声道 44.1 kHz 的压缩比接近 11:1，
+            // 是识别错字偏多的一个来源（辅音、气声先糊）。提到 96 kbps 后 30 分钟约 21 MB，
+            // 仍远低于各家 25~50 MB 的上传上限；与「长按语音」那条链路的参数保持一致。
+            r.setAudioEncodingBitRate(96_000)
             r.setAudioChannels(1)
             r.setOutputFile(file.absolutePath)
             // 录音器出错（麦克风被抢、编码器异常）时原来完全静默 —— 现在立刻分段保存

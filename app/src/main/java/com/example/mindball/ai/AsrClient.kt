@@ -116,7 +116,7 @@ object AsrClient {
         // ---------- 语言/方言：把「用户想识别什么」换算成「这个服务能收什么」 ----------
         val providerId = Repo.getStr(context, Repo.K_ASR_PROVIDER).ifBlank { Providers.guessAsrId(url) }
         val provider = Providers.asrById(providerId) ?: Providers.ASR.last()
-        val langId = langOverride?.takeIf { it.isNotBlank() } ?: Repo.getStr(context, Repo.K_ASR_LANG, SpeechLangs.ID_AUTO)
+        val langId = langOverride?.takeIf { it.isNotBlank() } ?: Repo.getStr(context, Repo.K_ASR_LANG, SpeechLangs.ID_ZH)
         val lang = SpeechLangs.byId(langId)
         val plan = SpeechLangs.plan(lang, provider)
         // 热词只在支持 prompt 的服务上发（SenseVoice 没有这个参数，发了会 400）

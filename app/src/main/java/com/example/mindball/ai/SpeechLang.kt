@@ -42,10 +42,11 @@ object SpeechLangs {
     val ALL: List<SpeechLang> = listOf(
         SpeechLang(
             id = ID_AUTO,
-            label = "自动识别（推荐）",
+            label = "自动识别（多语种场景）",
             requestCode = "auto",
             isDialect = false,
-            hint = "交给服务端判断语种。普通话、粤语、英日韩都能认；缺点是短句或夹杂口音时可能猜错。",
+            hint = "只在中英混说、或经常切换语种时才选它。中文对话请选「普通话（简体）」——" +
+                "自动判断在短句、带口音、有背景人声时容易猜错，猜错会让整段文字跟着走样。",
         ),
         SpeechLang(
             id = ID_ZH,

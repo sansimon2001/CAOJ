@@ -200,7 +200,7 @@ class SettingsFragment : Fragment() {
             ctx, android.R.layout.simple_spinner_dropdown_item, SpeechLangs.ALL.map { it.label }
         )
         b.spAsrLang.setSelection(
-            SpeechLangs.indexOf(Repo.getStr(ctx, Repo.K_ASR_LANG, SpeechLangs.ID_AUTO))
+            SpeechLangs.indexOf(Repo.getStr(ctx, Repo.K_ASR_LANG, SpeechLangs.ID_ZH))
         )
         b.etAsrHotwords.setText(Repo.getStr(ctx, Repo.K_ASR_PROMPT))
         b.swDialectStd.isChecked = Repo.getBool(ctx, Repo.K_DIALECT_STD, true)
