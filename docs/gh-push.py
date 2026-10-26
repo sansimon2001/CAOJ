@@ -149,10 +149,34 @@ def cmd_push():
         raise SystemExit(f"patch ref {st}: {out}")
     print("远端已更新:", nc["sha"])
 
-    if align_local(nc):
+    if try_align(nc["sha"], nt["sha"], rsha, msg, a_name, a_mail, a_date, c_date):
         print("本地 main 已对齐（提交对象一致）")
-    else:
-        print("本地无法复现同一提交对象，保留名义差异（内容一致）")
+
+
+def try_align(sha, tree, parent, msg, name, mail, adate, cdate) -> bool:
+    """用**本地**的 author/committer 时间字符串重建提交，比对 sha 后同步引用
+
+    坑：API 返回的 commit 对象里日期是 UTC（`...Z`），拿它去 commit-tree 会得到
+    `+0000` 的时区偏移，字节不同 → sha 不同。必须用本地 `%aI` / `%cI` 的原样字符串
+    （带 +0800），才能和 GitHub 建出来的对象逐字节相同。
+    """
+    env = dict(os.environ)
+    env.update({
+        "GIT_AUTHOR_NAME": name, "GIT_AUTHOR_EMAIL": mail, "GIT_AUTHOR_DATE": adate,
+        "GIT_COMMITTER_NAME": name, "GIT_COMMITTER_EMAIL": mail, "GIT_COMMITTER_DATE": cdate,
+    })
+    p = subprocess.run(["git", "commit-tree", tree, "-p", parent],
+                       input=msg.encode(), capture_output=True, env=env)
+    if p.returncode != 0:
+        print("commit-tree 失败:", p.stderr.decode()[:300])
+        return False
+    local = p.stdout.decode().strip()
+    if local != sha:
+        print(f"sha 仍未一致（本地 {local[:7]} / 远端 {sha[:7]}），内容已同步，后续 git fetch 可消除名义差异")
+        return False
+    subprocess.run(["git", "update-ref", f"refs/heads/{BRANCH}", sha], check=True)
+    subprocess.run(["git", "update-ref", f"refs/remotes/origin/{BRANCH}", sha], check=True)
+    return True
 
 
 def align_local(rc) -> bool:
@@ -215,15 +239,10 @@ def cmd_resync():
                   {"sha": nc["sha"], "force": True})
     if st != 200:
         raise SystemExit(f"patch ref {st}: {out}")
-    if nc["sha"] == git("rev-parse", "HEAD").strip():
-        # GitHub 用我们给的 author/committer/message 重建出了**同一个**提交对象
-        # —— 比本地再 commit-tree 一次可靠得多，直接同步跟踪引用即可
-        subprocess.run(["git", "update-ref", f"refs/remotes/origin/{BRANCH}", nc["sha"]], check=True)
-        print("已完全对齐（本地 main == 远端 main）")
-    elif align_local(nc):
+    if try_align(nc["sha"], tree, parent, msg, name, mail, adate, cdate):
         print("已完全对齐（本地 main == 远端 main）")
     else:
-        raise SystemExit("本地仍无法复现，请改用 git fetch && git rebase")
+        raise SystemExit("未能对齐，请改用 git fetch && git rebase")
 
 
 if __name__ == "__main__":
