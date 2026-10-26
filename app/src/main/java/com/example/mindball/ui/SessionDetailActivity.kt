@@ -318,8 +318,9 @@ class SessionDetailActivity : AppCompatActivity() {
                     append("声纹：已自动识别 · 我 = ").append(s.voiceSpeaker)
                     append("（匹配度 ").append(pct).append("）")
                 } else {
-                    append("声纹：把握不足（最像 ").append(s.voiceSpeaker)
-                    append("，匹配度 ").append(pct).append("），本次按你设置的「我是说话人几」处理")
+                    // 不写成「失败」：这只是没自动判定，按用户手选的说话人走，功能完全正常
+                    append("声纹：这次没把握（最像 ").append(s.voiceSpeaker)
+                    append("，").append(pct).append("），按你选的说话人处理，点下面的说话人可改")
                 }
             } else if (Voiceprint.hasTemplate(this@SessionDetailActivity) && s.isTranscribed) {
                 append("\n声纹：本次无需/无法判定（只有一位说话人，或转写未返回带时间的说话人分段）")

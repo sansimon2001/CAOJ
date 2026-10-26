@@ -42,8 +42,8 @@ android {
         targetSdk = 34
         // 允许命令行覆盖，CI 打 tag 时用：./gradlew assembleRelease -PversionName=1.23
         // versionCode 仍需手工递增（商店只认它，必须单调上涨）
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 24
-        versionName = (project.findProperty("versionName") as String?) ?: "1.24"
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 25
+        versionName = (project.findProperty("versionName") as String?) ?: "1.25"
     }
 
     // 正式签名（密钥与密码在 keystore.properties 里，该项目文件不入库）

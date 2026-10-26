@@ -57,15 +57,18 @@
     <string name="voiceprint_enroll_again">重新录入</string>
     <string name="voiceprint_clear">清除</string>
     <string name="enroll_title">录入本人声纹</string>
-    <string name="enroll_intro">录一次你自己的声音，之后每次录音 App 会自动判断哪几段是你说的，摘要就能准确区分「我」和「对方」，不用再手动指定「我是说话人几」。\n\n建议：安静环境、手机离嘴 20~30 厘米、用平时说话的语速，录满 15 秒。</string>
+    <string name="enroll_intro">录一次你自己的声音，之后每次录音 App 会自动判断哪几段是你说的，摘要就能准确区分「我」和「对方」，不用再手动指定「我是说话人几」。\n\n没有需要达到的百分比：把下面那句提示语正常读完一遍（约 15 秒，手机离嘴 20~30 厘米），点「停止并分析」就会保存。\n\n认不准也不用反复重录——真出现「存疑」，在记录详情里点一下说话人就能改，改过之后会记住。</string>
     <string name="enroll_read_hint">请朗读这句话（读完大约 15 秒）</string>
     <string name="enroll_start">开始录音</string>
     <string name="enroll_stop">停止并分析</string>
     <string name="enroll_done">完成</string>
-    <string name="enroll_limit">技术说明：本机用的是 MFCC + 音高统计的轻量声纹模型（无需联网、不上传声音），能区分音色差异明显的两个人；同性别且音色接近的两人可能分不准。为此 App 只在「相似度明显领先」时才自动采用，否则保留你的手动设置并在记录详情里标注「存疑」，不会乱改。声纹数据只存在本机数据库。</string>
+    <string name="enroll_limit">技术说明：本机用的是 MFCC + 音高统计的轻量声纹模型（无需联网、不上传声音），能区分音色差异明显的两个人；同性别且音色接近的两人可能分不准。遇到分不准时 App 不会硬猜，只在记录详情里标注「存疑」并按你手动选的「我是说话人几」处理，点一下改正即可。声纹数据只存在本机数据库。</string>
     <!-- 蓝牙耳机连接 -->
     <string name="bt_mic">用蓝牙耳机麦克风录音（默认音源）</string>
     <string name="bt_mic_hint">默认关闭，用手机麦克风（44.1kHz，音质更好，且完全不改动蓝牙音频通路，连接最稳）。\n开启后录音会切到耳机麦克风：离嘴更近、远处说话也能听清，但走蓝牙通话通路（音质较低），期间耳机里的音乐会被打断。若发现耳机连接不稳定，请保持关闭。\n\n这里设的是默认音源；「今日」页底部的「手机麦克风 / 蓝牙耳机」可以随时手动切换，录音过程中切换也是立即生效（当前这段会先单独保存）。</string>
+    <!-- 常驻通知 -->
+    <string name="discreet_notify">通知栏不显示录音状态</string>
+    <string name="discreet_notify_hint">开启后常驻通知只显示「草记 · 目前正常运行」，计时器、话筒图标和「标记重点 / 结束记录」两个按钮会一起隐藏——只改文字、留着跳动的计时器和话筒，旁人照样看得出来，所以要一起收掉。\n\n代价是：结束记录要回到应用里点，「标记重点」也要在应用内做。开关一改立刻生效，正在录音时也不用重启。「已跳过本次录音」这类一次性提醒不受影响。</string>
     <!-- 整理导出与系统打通 -->
     <string name="section_export">整理与分发</string>
     <string name="export_hint">同一份文稿，可复制、存成 .md 文件、直接转发微信，或存进系统便签</string>

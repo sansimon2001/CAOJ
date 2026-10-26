@@ -43,6 +43,7 @@ object Repo {
     const val K_AUTO_RECORD = "auto_record"    // 1=连上耳机自动开始录音
     const val K_BT_MIC = "bt_mic"              // 1=用蓝牙耳机麦克风录音（默认 0 用手机麦）
     const val K_KEEP_AUDIO = "keep_audio"      // 1=保留原音（默认 0，只留文字）
+    const val K_DISCREET_NOTIFY = "discreet_notify" // 1=常驻通知只显示「目前正常运行」（默认 0）
     const val K_LAST_CALL_SCAN = "last_call_scan"
 
     // 说话人区分（声纹）

@@ -257,6 +257,7 @@ class SettingsFragment : Fragment() {
         // ==================== 记录行为 ====================
         b.swAutoRecord.isChecked = Repo.getBool(ctx, Repo.K_AUTO_RECORD, true)
         b.swKeepAudio.isChecked = Repo.getBool(ctx, Repo.K_KEEP_AUDIO, false)
+        b.swDiscreetNotify.isChecked = Repo.getBool(ctx, Repo.K_DISCREET_NOTIFY, false)
 
         // ==================== 隐私与安全 ====================
         b.swSecureWindow.isChecked = Repo.getBool(ctx, Repo.K_SECURE_WINDOW, true)
@@ -437,6 +438,19 @@ class SettingsFragment : Fragment() {
         // ==================== 开关即时生效 ====================
         b.swAutoRecord.setOnCheckedChangeListener { _, c -> Repo.setBool(ctx, Repo.K_AUTO_RECORD, c) }
         b.swKeepAudio.setOnCheckedChangeListener { _, c -> Repo.setBool(ctx, Repo.K_KEEP_AUDIO, c) }
+        b.swDiscreetNotify.setOnCheckedChangeListener { _, c ->
+            Repo.setBool(ctx, Repo.K_DISCREET_NOTIFY, c)
+            // 正在录音时立刻重绘常驻通知：否则要等到下一次状态变化（下一段/已暂停）才生效，
+            // 用户会以为开关没起作用
+            if (RecorderService.isRecording) {
+                runCatching {
+                    ctx.startService(
+                        Intent(ctx, RecorderService::class.java)
+                            .setAction(RecorderService.ACTION_REFRESH_NOTIFY)
+                    )
+                }
+            }
+        }
         b.swDiarize.setOnCheckedChangeListener { _, c -> Repo.setBool(ctx, Repo.K_ASR_DIARIZE, c) }
         b.swRemind.setOnCheckedChangeListener { _, c ->
             Repo.setBool(ctx, Repo.K_REMIND_ENABLE, c)

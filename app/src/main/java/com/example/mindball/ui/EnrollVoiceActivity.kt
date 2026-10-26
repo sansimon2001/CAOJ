@@ -88,8 +88,8 @@ class EnrollVoiceActivity : AppCompatActivity() {
         val t = Voiceprint.load(this) ?: return
         b.tvState.text = "已录入"
         b.tvResult.visibility = android.view.View.VISIBLE
-        b.tvResult.text = "当前声纹：%.1f 秒样本 · 有效人声 %d%%\n重新录入会覆盖原有声纹".format(
-            t.seconds, (t.voicedRatio * 100).toInt()
+        b.tvResult.text = "当前声纹：%.1f 秒样本 · 收音 %s\n重新录入会覆盖原有声纹".format(
+            t.seconds, Voiceprint.qualityLabel(t.voicedRatio)
         )
     }
 
@@ -155,22 +155,23 @@ class EnrollVoiceActivity : AppCompatActivity() {
             b.tvState.text = "待录入"
             b.tvTimer.text = String.format(Locale.CHINA, "0.0 / %.1f 秒", MAX_MS / 1000f)
             b.progress.progress = 0
-            if (analyze) toast("录音太短，请读完提示句（约 15 秒）")
+            if (analyze) toast("只录了一两秒，请把提示句读完再点「停止并分析」")
             return
         }
 
         analyzing = true
         scope.launch {
-            val (tpl, msg) = withContext(Dispatchers.IO) { Voiceprint.build(f) }
+            val res = withContext(Dispatchers.IO) { Voiceprint.build(f) }
             analyzing = false
             b.btnRecord.isEnabled = true
             promptIndex = (promptIndex + 1) % PROMPTS.size
             b.tvPrompt.text = PROMPTS[promptIndex]
 
+            val tpl = res.template
             if (tpl == null) {
                 b.tvState.text = "未保存"
                 b.tvResult.visibility = android.view.View.VISIBLE
-                b.tvResult.text = "录入未通过：$msg\n请换到安静处再试一次"
+                b.tvResult.text = res.error
                 b.btnDone.isEnabled = false
                 return@launch
             }
@@ -182,7 +183,9 @@ class EnrollVoiceActivity : AppCompatActivity() {
             b.tvResult.visibility = android.view.View.VISIBLE
             b.tvResult.text = buildString {
                 append("声纹已保存 ✅\n")
-                append("样本时长 %.1f 秒 · 有效人声 %d%%\n".format(tpl.seconds, (tpl.voicedRatio * 100).toInt()))
+                // 不显示百分比：录入门槛只有「说完一遍」，摆一个数字出来只会让人反复重录
+                append("样本 %.1f 秒 · 收音 %s\n".format(tpl.seconds, Voiceprint.qualityLabel(tpl.voicedRatio)))
+                if (res.note.isNotBlank()) append(res.note).append("\n")
                 if (AsrClient.diarizePossible(this@EnrollVoiceActivity)) {
                     append("之后录音会自动判断哪一段是「我」，不必再手动选「我是说话人几」。")
                 } else {

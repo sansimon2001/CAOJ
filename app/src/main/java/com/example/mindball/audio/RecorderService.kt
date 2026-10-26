@@ -88,6 +88,13 @@ class RecorderService : Service() {
         const val ACTION_MARK = "com.example.mindball.MARK_POINT"
         const val EXTRA_TRIGGER = "trigger"
 
+        /** 「通知栏不显示录音状态」开关切换后，立刻按原状态重绘常驻通知 */
+        const val ACTION_REFRESH_NOTIFY = "com.example.mindball.REFRESH_NOTIFY"
+
+        /** 模糊模式下常驻通知的固定文案：不出现「录音」二字 */
+        private const val DISCREET_TITLE = "草记"
+        private const val DISCREET_TEXT = "目前正常运行"
+
         /** 录音中切换音源：当前段收尾保存，立刻用新音源开新段 */
         const val ACTION_SWITCH_SOURCE = "com.example.mindball.SWITCH_SOURCE"
 
@@ -291,6 +298,7 @@ class RecorderService : Service() {
                 stopRecordingAndSave(intent.getStringExtra(EXTRA_TRIGGER) ?: "user")
             }
             ACTION_MARK -> markPoint()
+            ACTION_REFRESH_NOTIFY -> refreshNotification()
             ACTION_SWITCH_SOURCE -> switchSource(intent.getStringExtra(EXTRA_SOURCE))
             // intent 为空 = 系统重启了服务（START_STICKY）。没有在录音就别占着前台通知
             null -> if (!isRecording) {
@@ -849,6 +857,23 @@ class RecorderService : Service() {
 
     // ==================== 通知 ====================
 
+    /**
+     * 最近一次常驻通知的「真实」文案
+     *
+     * 模糊模式只改最终渲染，不改这套状态：切换开关时拿它重绘，
+     * 就能立刻回到当前该显示的内容（第几段、已暂停、已标记…），
+     * 不必等下一次状态变化。
+     */
+    private var lastNotifyTitle = "正在记录"
+    private var lastNotifyText = ""
+    private var lastNotifyChrono = true
+
+    /** 开关切换后立即重绘常驻通知（没在录音时无需理会） */
+    private fun refreshNotification() {
+        if (!isRecording && !isWaitingResume) return
+        updateNotification(lastNotifyTitle, lastNotifyText, lastNotifyChrono)
+    }
+
     private fun updateNotification(title: String, text: String, chrono: Boolean) {
         runCatching {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -862,6 +887,18 @@ class RecorderService : Service() {
      *   （每次都跨进程 IPC + 系统 UI 重绘）；改成 setUsesChronometer 后由系统自己渲染
      */
     private fun buildNotification(title: String, text: String, chrono: Boolean = false): Notification {
+        lastNotifyTitle = title
+        lastNotifyText = text
+        lastNotifyChrono = chrono
+
+        // ===== 「通知栏不显示录音状态」（设置里可开）=====
+        // 只换文案是不够的：计时器在跳、图标是话筒、按钮写着「标记重点」，
+        // 每一样都能让旁人看出这台手机在录音，所以这四处要一起收掉。
+        val discreet = Repo.getBool(this, Repo.K_DISCREET_NOTIFY, false)
+        val shownTitle = if (discreet) DISCREET_TITLE else title
+        val shownText = if (discreet) DISCREET_TEXT else text
+        val shownChrono = chrono && !discreet
+
         ensureChannel(this, CH_ID, "录音状态", NotificationManager.IMPORTANCE_LOW)
         val openPi = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java),
@@ -875,19 +912,23 @@ class RecorderService : Service() {
             this, 2, Intent(this, RecorderService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        return NotificationCompat.Builder(this, CH_ID)
-            .setSmallIcon(R.drawable.ic_mic)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+        val builder = NotificationCompat.Builder(this, CH_ID)
+            .setSmallIcon(if (discreet) R.drawable.ic_notify_discreet else R.drawable.ic_mic)
+            .setContentTitle(shownTitle)
+            .setContentText(shownText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(shownText))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setShowWhen(chrono)
-            .setWhen(if (chrono) startAt else System.currentTimeMillis())
-            .setUsesChronometer(chrono)
+            .setShowWhen(shownChrono)
+            .setWhen(if (shownChrono) startAt else System.currentTimeMillis())
+            .setUsesChronometer(shownChrono)
             .setContentIntent(openPi)
-            .addAction(0, "标记重点", markPi)
-            .addAction(0, "结束记录", stopPi)
-            .build()
+        // 模糊模式下不挂操作按钮：按钮上的字同样会泄露在录什么状态，
+        // 结束记录请进应用操作（说明文案里已写明）。
+        if (!discreet) {
+            builder.addAction(0, "标记重点", markPi)
+            builder.addAction(0, "结束记录", stopPi)
+        }
+        return builder.build()
     }
 }

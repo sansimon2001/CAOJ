@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  常驻通知的小图标（「通知栏不显示录音状态」模式专用）
+
+  为什么不复用 ic_mic：麦克风图标本身就是「正在录音」的明确信号，
+  保隐私却又留一个话筒，等于没改。
+
+  为什么不用 ic_logo_mark：那张是带渐变与落影的红色徽章，
+  而通知栏小图标只取 alpha 通道渲染成单色剪影，
+  红色渐变会全部丢掉，只剩一个实心方块，反而难看。
+
+  所以这里画一枚极简单色圆环（与桌面图标的「C」同一血统），
+  只表示「应用在运行」，不携带任何录音含义。
+  通知小图标同样只认 alpha，填充色写死白色即可，系统会上色。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M60,14 A46,46 0 1 0 60,106 A46,46 0 1 0 60,14 Z M60,38 A22,22 0 1 1 60,82 A22,22 0 1 1 60,38 Z" />
+</vector>
