@@ -1,0 +1,10 @@
+{
+  "modelVersion": "5.0.0",
+  "name": "caoji",
+  "version": "1.18.0",
+  "description": "草记 · 鸿蒙原生版",
+  "main": "",
+  "author": "sansimon2001@163.com",
+  "license": "",
+  "dependencies": {}
+}

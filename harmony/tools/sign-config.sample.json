@@ -1,0 +1,13 @@
+{
+  "_说明": "复制本文件为 sign-config.json 后填写。路径建议写绝对路径，反斜杠要写成双反斜杠或改用正斜杠。",
+  "_keystore": "你自己生成的密钥库（.p12）。DevEco: Build → Generate Key and CSR 可生成",
+  "_appCert": "AGC → 证书、APP ID 和 Profile → 证书 里下载的 .cer",
+  "_profile": "AGC → Profile 里下载的 .p7b（类型选 release 或 debug；debug 只能装到已注册的调试设备）",
+  "keystore": "C:/Users/你的用户名/.ohos/config/caoji.p12",
+  "keyAlias": "caoji",
+  "keyPwd": "密钥口令",
+  "keystorePwd": "密钥库口令",
+  "appCert": "C:/Users/你的用户名/.ohos/config/caoji.cer",
+  "profile": "C:/Users/你的用户名/.ohos/config/caoji.p7b",
+  "_bundleName": "online.wokaka.caoji —— 必须与 AppScope/app.json5 一致，否则签名后装不上"
+}

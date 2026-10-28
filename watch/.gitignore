@@ -1,0 +1,32 @@
+# ---------- 构建产物 ----------
+build/
+app/build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+captures/
+*.apk
+*.aab
+
+# ---------- 本机 SDK 路径，每台机器不同 ----------
+local.properties
+
+# ---------- 签名与密钥：绝不入库 ----------
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+
+# ---------- IDE ----------
+.idea/
+*.iml
+*.hprof
+
+# ---------- 系统 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 临时文件 ----------
+*.log

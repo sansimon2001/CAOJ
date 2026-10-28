@@ -1,0 +1,44 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "草记 · 领口麦克风自动记录与整理"
+    },
+    {
+      "name": "ability_desc",
+      "value": "草记主界面"
+    },
+    {
+      "name": "app_name",
+      "value": "草记"
+    },
+    {
+      "name": "perm_mic_reason",
+      "value": "用于录制并转写你的对话记录，音频只保存在本机"
+    },
+    {
+      "name": "perm_bg_reason",
+      "value": "蓝牙耳机连接后自动开始记录，需要后台持续录音"
+    },
+    {
+      "name": "perm_bt_reason",
+      "value": "用于检测蓝牙耳机连接状态，实现连上自动开始记录"
+    },
+    {
+      "name": "tab_today",
+      "value": "今日"
+    },
+    {
+      "name": "tab_projects",
+      "value": "项目"
+    },
+    {
+      "name": "tab_insight",
+      "value": "觉察"
+    },
+    {
+      "name": "tab_settings",
+      "value": "设置"
+    }
+  ]
+}

@@ -18,6 +18,21 @@
 
 ---
 
+## 本仓库包含三端
+
+| 目录 | 端 | 技术栈 | 状态 |
+|---|---|---|---|
+| 根目录（`app/`） | **Android 手机版** | Kotlin + 传统 View + SQLite，包名 `com.example.mindball` | 主力版本，v1.25 |
+| [`harmony/`](harmony/README.md) | **HarmonyOS 鸿蒙版** | ArkTS + ArkUI Stage 模型（API 12），包名 `online.wokaka.caoji` | 原生重写，功能对齐到 v1.25 |
+| [`watch/`](watch/README.md) | **手表端** | Kotlin + Wear，包名 `online.wokaka.caojiwatch` | 遥控手机开始/停止录音 |
+
+三端共用同一套 AI 服务商配置与数据模型，但**各自独立构建、独立发版**，互不引用。
+下文（第三～十一章）默认讲**安卓端**；鸿蒙与手表的编译方式、环境依赖、能力边界见各自 README。
+
+安装包不进源码库，统一放在 [Releases](https://github.com/sansimon2001/CAOJ/releases)。
+
+---
+
 ## 零、品牌（v1.3 起）
 
 | 项 | 值 |
@@ -249,7 +264,9 @@ App 内「设置」→ **扫描系统通话录音并导入**，把已有通话�
 
 通知内容形如：**待办提醒 · 已逾期 2 项 · 今天到期 1 项**，正文列出前 3 条。
 
-## 九、目录结构
+## 九、安卓端目录结构
+
+> 鸿蒙端在 `harmony/`、手表端在 `watch/`，结构见各自 README。
 
 ```
 MindBall/

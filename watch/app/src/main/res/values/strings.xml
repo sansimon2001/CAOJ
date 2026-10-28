@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">草记手表</string>
+    <string name="status_searching">正在找手机…</string>
+    <string name="btn_start">开始</string>
+    <string name="btn_stop">结束</string>
+    <string name="btn_mark">打点</string>
+    <string name="hint_ready">手机端「设置 → 录音与音源 → 手表遥控」打开，两台连同一个 Wi-Fi</string>
+</resources>

@@ -1,0 +1,28 @@
+# ---------- 构建产物 ----------
+build/
+entry/build/
+.hvigor/
+oh_modules/
+.hvigor-cache/
+*.hap
+*.hsp
+*.app
+
+# ---------- 本机配置（每台机器不同，绝不入库） ----------
+local.properties
+sign-config.json
+
+# ---------- IDE ----------
+.idea/
+*.iml
+.clangd/
+.cxx/
+previewer/
+
+# ---------- 系统 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 临时文件 ----------
+*.log
