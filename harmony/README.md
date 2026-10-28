@@ -1,6 +1,6 @@
 # 草记 · 鸿蒙原生版（HarmonyOS NEXT）
 
-Android 版（`C:\Users\simon\Desktop\MindBall`，Kotlin + XML）的鸿蒙原生重写：**ArkTS + ArkUI，Stage 模型，API 12（HarmonyOS 5.0）**。
+Android 版（同仓库根目录 `app/`，Kotlin + XML）的鸿蒙原生重写：**ArkTS + ArkUI，Stage 模型，API 12（HarmonyOS 5.0）**。
 不是壳、不是 WebView、不是跨平台框架，页面、录音、存储、加密、网络全部走鸿蒙原生能力。
 
 ---
@@ -8,29 +8,29 @@ Android 版（`C:\Users\simon\Desktop\MindBall`，Kotlin + XML）的鸿蒙原生
 ## 一、怎么打开
 
 1. DevEco Studio **5.0 及以上**（支持 API 12 / HarmonyOS NEXT）
-2. `File → Open` 选择本目录 `CaojiHarmony`
+2. `File → Open` 选择本目录（仓库里的 `harmony/`）
 3. 首次打开会自动同步 hvigor 与依赖（需要网络）
 4. `File → Project Structure → Signing Configs` 勾选 **Automatically generate signature**（否则装不上真机）
 5. 运行设备选真机（模拟器没有麦克风和蓝牙，录音与耳机触发都测不了）
 
-包名 `online.wokaka.caoji`，版本 `1.18.0 (versionCode 100)`。
+包名 `online.wokaka.caoji`，版本 `1.25.0 (versionCode 125)`。
 
 > **要出可安装的 .hap**：见 [`docs/打包与安装.md`](docs/打包与安装.md)。
 > 图形界面是一条最短路径（Sync → 自动签名 → Build Hap）；命令行则跑 `tools\build-hap.ps1`（自动找 SDK、编译、收产物到 `out\`），
 > 需要离线签名时再用 `tools\sign-hap.ps1` + `tools\sign-config.json`。
 > `.hap` 里的 `modules.abc` 与 `resources.index` 只能由 SDK 编译链生成，无法凭空造出来。
 
-> **重要说明**：本工程是在没有 DevEco Studio / 鸿蒙 SDK 的机器上写出来的，**未经过 hvigor 编译**。
-> 已完成的是静态自检：资源 JSON 全部可解析、24 个 .ets 文件括号与语法结构完整、
-> 跨文件 API 签名与 SQL 字段逐一对照、无未使用的导入。首次在 DevEco 里 Sync 时若有个别
-> API 版本差异（多为 `@kit.*` 的具体导出名），按提示改一行即可，不影响整体结构。
+> **当前状态**：本工程已用 OpenHarmony 5.0.0 SDK（API 12）+ hvigor CLI **编译通过**（无需 DevEco、无需华为账号），
+> 产出未签名 hap 约 1.06 MB，每次 `tools/ohos-build.sh` 约 16 秒。
+> 该包**装不上真机**——签名必须用 DevEco Studio 配华为账号，这一步绕不过去。
+> 命令行构建的环境搭建与踩坑记录见 [`tools/ohos-build.sh`](tools/ohos-build.sh) 与文末「构建」一节。
 
 ---
 
 ## 二、目录结构
 
 ```
-CaojiHarmony/
+harmony/                            （仓库子目录）
 ├── AppScope/                       应用级配置与图标
 ├── build-profile.json5             编译配置（compatibleSdkVersion 5.0.0(12)）
 ├── entry/src/main/
@@ -182,7 +182,7 @@ Wear OS 手表与 Android 手机之间，官方通道是 Google Play 服务里�
 - 状态只在**翻转时**回推；秒表由手表按本地时间自己走（每秒推一次会让手表多醒几百次）
 - 开关在「设置 → 录音与音源 → 手表遥控」，手机端会把当前地址显示出来方便核对
 
-手表端是单独的安卓包（`~/Desktop/CaojiWatch`），不碰麦克风、不存内容、不连服务器，
+手表端是单独的安卓包（同仓库 `watch/` 目录），不碰麦克风、不存内容、不连服务器，
 所以功耗约等于一块表盘。已知局限：必须在同一个 Wi-Fi（手机开热点也行）。
 
 ---
@@ -306,7 +306,7 @@ python tools/switch-target.py harmony       # 手动恢复正本
 
 ### 版本对齐：鸿蒙版已追到安卓 v1.25
 
-鸿蒙工程原本是从安卓 v1.18 转制的（桌面上 `CaojiHarmony-src-1.18.0.zip` 里写的就是
+鸿蒙工程原本是从安卓 v1.18 转制的（最初那个源码包里写的就是
 `versionCode 100 / versionName 1.18.0`），v1.19 之后的改动一行都没进来。
 本次按安卓版逐轮补齐：
 

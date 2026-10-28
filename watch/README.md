@@ -11,7 +11,7 @@
 
 ## 一、为什么是单独一个包
 
-手机端是**鸿蒙**（`~/Desktop/CaojiHarmony`，ArkTS + ArkUI），手表是**安卓**——两套系统、
+手机端是**鸿蒙**（同仓库 `harmony/` 目录，ArkTS + ArkUI），手表是**安卓**——两套系统、
 两种技术栈，只能各出一个包。
 
 更要紧的是：Wear OS 手表与 Android 手机之间的标准通道是 Google Play 服务里的
@@ -84,7 +84,7 @@ Wearable Data Layer（`MessageClient` / `DataClient`）。**鸿蒙手机没有 G
 ## 五、工程结构
 
 ```
-CaojiWatch/
+watch/                              （仓库子目录）
 ├── app/src/main/
 │   ├── AndroidManifest.xml          只要网络权限；声明 watch 属性但不强制
 │   ├── java/online/wokaka/caojiwatch/
@@ -94,9 +94,12 @@ CaojiWatch/
 │       ├── layout/activity_main.xml 圆形表留了 26dp 左右边距
 │       ├── drawable/bg_btn_*.xml    空闲是黑底红边，录音中是红底
 │       └── values/                  文案
-├── tools/probe-watch.py             联调工具：在电脑上假装自己是手机
-└── release/草记手表-1.19.0w.apk      侧载包（debug 签名，开了 R8，1.5MB）
+└── tools/probe-watch.py             联调工具：在电脑上假装自己是手机
 ```
+
+侧载包不进源码库（避免仓库逐版本膨胀），统一放
+[Releases · v1.19.0w](https://github.com/sansimon2001/CAOJ/releases/tag/v1.19.0w)，
+文件名 `caoji-watch-v1.19.0w.apk`（debug 签名，开了 R8，约 1.5 MB）。
 
 ---
 
@@ -109,7 +112,7 @@ CaojiWatch/
 ```bash
 # 手表：设置 → 关于 → 连点版本号 7 次 → 开发者选项 → 打开「ADB 调试」和「Wi-Fi 调试」
 adb connect <手表IP>:5555
-adb install -r release/草记手表-1.19.0w.apk
+adb install -r caoji-watch-v1.19.0w.apk    # 从 Releases 下载的包
 ```
 
 **B. 手机助手**：小米/华为/OPPO 各自的手表助手 App 里通常有「安装本地应用」
@@ -123,7 +126,7 @@ adb install -r release/草记手表-1.19.0w.apk
 ## 七、重新打包
 
 ```bash
-cd ~/Desktop/CaojiWatch
+cd watch
 JAVA_HOME=/c/Users/simon/.workbuddy/binaries/jdk17/jdk-17.0.20.1+1 ./gradlew --offline assembleRelease
 # 产物：app/build/outputs/apk/release/app-release.apk
 ```

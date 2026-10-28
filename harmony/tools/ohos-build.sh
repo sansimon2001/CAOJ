@@ -16,12 +16,18 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# ---------- 工具链位置（换机器改这几行） ----------
-JDK_WIN="C:/Users/simon/.workbuddy/binaries/jdk17/jdk-17.0.20.1+1"
-JDK_UNIX="/c/Users/simon/.workbuddy/binaries/jdk17/jdk-17.0.20.1+1"
-OHOS_HOME="/c/Users/simon/ohos-sdk"
-SDK_WIN="C:/Users/simon/ohos-sdk/Sdk"
-HVIGOR_ENV="C:/Users/simon/ohos-sdk/hvigor-env"
+# ---------- 工具链位置 ----------
+# 默认按本机装好的路径走；换机器时用环境变量覆盖即可，不必改脚本：
+#   CAOJI_JDK=C:/path/to/jdk17  CAOJI_OHOS_SDK=C:/path/to/ohos-sdk  tools/ohos-build.sh
+JDK_WIN="${CAOJI_JDK:-C:/Users/simon/.workbuddy/binaries/jdk17/jdk-17.0.20.1+1}"
+OHOS_WIN="${CAOJI_OHOS_SDK:-C:/Users/simon/ohos-sdk}"
+
+# C:/foo → /c/foo，PATH 与 -x 判断都只认 Unix 形式
+to_unix() { printf '%s' "$1" | sed -E 's|^([A-Za-z]):|/\L\1|'; }
+JDK_UNIX="$(to_unix "$JDK_WIN")"
+OHOS_HOME="$(to_unix "$OHOS_WIN")"
+SDK_WIN="$OHOS_WIN/Sdk"
+HVIGOR_ENV="$OHOS_WIN/hvigor-env"
 HVIGOR="$HVIGOR_ENV/node_modules/@ohos/hvigor/bin/hvigor.js"
 
 # ---------- 前置检查 ----------
@@ -39,6 +45,15 @@ export DEVECO_SDK_HOME="$SDK_WIN"
 
 # ---------- 切到 OpenHarmony 配置，退出时无条件恢复 ----------
 cd "$ROOT" || fail "进不去工程目录"
+
+# local.properties 存的是本机 SDK 路径，不入库（见 .gitignore）。
+# 缺了就按本次实际用的 SDK 位置补一份，否则 hvigor 直接报 00303208 找不到 sdk.dir。
+LP="$ROOT/local.properties"
+if [ ! -f "$LP" ] || ! grep -qE '^[[:space:]]*sdk\.dir=' "$LP"; then
+  printf '# 由 tools/ohos-build.sh 自动生成，不入库\nsdk.dir=%s\n' "$SDK_WIN" > "$LP"
+  echo "· 已补 local.properties → sdk.dir=$SDK_WIN"
+fi
+
 python "$ROOT/tools/switch-target.py" openharmony || fail "切换构建配置失败"
 trap 'python "$ROOT/tools/switch-target.py" harmony >/dev/null 2>&1' EXIT INT TERM
 
