@@ -81,10 +81,12 @@ export function checkSummary(
   }
 
   // 2) 关键短语回扣
+  //    短文本不查这一条：几百字的原文，摘要天然是改写，短语重合度低是正常的，
+  //    照搬阈值只会把好摘要标红。事实性仍由数字回扣把关。
   const phrases = extractPhrases(summary)
   const hit = phrases.filter((p) => src.includes(normalize(p))).length
   const overlap = phrases.length ? hit / phrases.length : 1
-  if (phrases.length >= 4 && overlap < 0.35) {
+  if (src.length >= 300 && phrases.length >= 4 && overlap < 0.35) {
     reasons.push(`摘要与原文重合度过低（${Math.round(overlap * 100)}%）`)
   }
 

@@ -1,8 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Recorder, type SourceMode } from './lib/recorder'
-import type { AsrProvider, LlmProvider, RecordItem, Settings } from './lib/types'
+import { runRecord, type Progress } from './lib/pipeline'
+import { STATUS_TEXT, fmtClock, fmtWhen } from './lib/format'
+import type {
+  AsrProvider,
+  CalEvent,
+  LlmProvider,
+  Project,
+  RecordItem,
+  SearchHit,
+  Settings,
+} from './lib/types'
 import Detail from './views/Detail'
+import ProjectsView from './views/ProjectsView'
+import ScheduleView from './views/ScheduleView'
 import SettingsPanel from './views/SettingsPanel'
+import Modal from './components/Modal'
 
 const SOURCES: { id: SourceMode; label: string; hint: string }[] = [
   { id: 'mic', label: '麦克风', hint: '线下见面、当面沟通' },
@@ -10,37 +23,15 @@ const SOURCES: { id: SourceMode; label: string; hint: string }[] = [
   { id: 'mix', label: '两者都录', hint: '线上会议：我的声音与对方的声音都收进来' },
 ]
 
-function fmtClock(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const mm = String(Math.floor(s / 60)).padStart(2, '0')
-  const ss = String(s % 60).padStart(2, '0')
-  return `${mm}:${ss}`
-}
-
-function fmtWhen(iso: string): string {
-  const d = new Date(iso)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const today = new Date()
-  const sameDay =
-    d.getFullYear() === today.getFullYear() &&
-    d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate()
-  if (sameDay) return `今天 ${pad(d.getHours())}:${pad(d.getMinutes())}`
-  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-const STATUS_TEXT: Record<string, string> = {
-  recorded: '待整理',
-  transcribing: '转写中',
-  analyzing: '整理中',
-  done: '已完成',
-  failed: '失败',
-}
+type View = 'records' | 'projects' | 'schedule' | 'settings'
 
 export default function App() {
   const [records, setRecords] = useState<RecordItem[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [events, setEvents] = useState<CalEvent[]>([])
+
+  const [view, setView] = useState<View>('records')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [tab, setTab] = useState<'record' | 'settings'>('record')
 
   const [settings, setSettings] = useState<Settings | null>(null)
   const [llmList, setLlmList] = useState<LlmProvider[]>([])
@@ -52,13 +43,27 @@ export default function App() {
   const [level, setLevel] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [progress, setProgress] = useState<Progress | null>(null)
+
+  const [q, setQ] = useState('')
+  const [hits, setHits] = useState<SearchHit[]>([])
+
+  const [pasteOpen, setPasteOpen] = useState(false)
+  const [pasteText, setPasteText] = useState('')
 
   const recRef = useRef<Recorder | null>(null)
   const rafRef = useRef<number>(0)
 
   const refresh = useCallback(async () => {
-    const list = await window.caoji.list()
+    const [list, ps, evs] = await Promise.all([
+      window.caoji.list(),
+      window.caoji.listProjects(),
+      window.caoji.listEvents(),
+    ])
     setRecords(list)
+    setProjects(ps)
+    setEvents(evs)
     return list
   }, [])
 
@@ -87,10 +92,20 @@ export default function App() {
     }
   }, [])
 
-  const selected = useMemo(
-    () => records.find((r) => r.id === selectedId) ?? null,
-    [records, selectedId]
-  )
+  // 搜索防抖：每敲一个字都走一次 IPC 没必要
+  useEffect(() => {
+    const kw = q.trim()
+    if (!kw) {
+      setHits([])
+      return
+    }
+    const t = setTimeout(async () => {
+      setHits(await window.caoji.search(kw))
+    }, 180)
+    return () => clearTimeout(t)
+  }, [q])
+
+  const selected = useMemo(() => records.find((r) => r.id === selectedId) ?? null, [records, selectedId])
 
   const tick = useCallback(() => {
     const r = recRef.current
@@ -99,6 +114,13 @@ export default function App() {
     setLevel(r.level())
     rafRef.current = requestAnimationFrame(tick)
   }, [])
+
+  function flash(msg: string) {
+    setNotice(msg)
+    setTimeout(() => setNotice(''), 4000)
+  }
+
+  // ---------- 录音 ----------
 
   async function startRecording() {
     setError('')
@@ -138,12 +160,12 @@ export default function App() {
       const rec = await window.caoji.saveAudio(buf, { durationMs, source, marks })
       await refresh()
       setSelectedId(rec.id)
-      setTab('record')
+      setView('records')
 
-      // 配好 Key 就直接跑完整链路；没配就停在「待整理」，用户点按钮再来
       if (settings?.asrApiKey && settings?.llmApiKey) {
-        await window.caoji.run(rec.id)
-        await refresh()
+        await process(rec.id)
+      } else {
+        flash('已保存。填好 Key 后可随时整理。')
       }
     } catch (e) {
       setError(readableError(e))
@@ -152,19 +174,77 @@ export default function App() {
     }
   }
 
-  async function runSelected(id: string, force = false) {
+  /** 跑完整链路，带进度显示 */
+  async function process(id: string, force = false) {
     setBusy(true)
+    setError('')
     try {
-      const r = await window.caoji.run(id, { force })
-      if (!r.ok) setError(r.error ?? '整理失败')
-      else setError('')
+      const out = await runRecord(id, {
+        force,
+        onProgress: setProgress,
+      })
+      if (!out.ok) setError(out.error ?? '处理失败')
+      else if (out.guardNote) flash(out.guardNote)
       await refresh()
+    } catch (e) {
+      setError(readableError(e))
     } finally {
+      setProgress(null)
       setBusy(false)
     }
   }
 
+  // ---------- 导入 ----------
+
+  async function doImport() {
+    setError('')
+    const paths = await window.caoji.importPick()
+    if (!paths?.length) return
+    setBusy(true)
+    setProgress({ stage: 'decode', current: 0, total: 0, note: `正在导入 ${paths.length} 个文件` })
+    try {
+      const out = await window.caoji.importRun(paths)
+      await refresh()
+      if (out.created.length) {
+        setSelectedId(out.created[0].id)
+        setView('records')
+      }
+      if (out.skipped.length) {
+        setError(`${out.created.length} 个已导入，${out.skipped.length} 个跳过：${out.skipped[0].reason}`)
+      } else {
+        flash(`已导入 ${out.created.length} 个文件`)
+      }
+      // 配好 Key 就顺手把第一个跑完，其余留在待整理
+      if (out.created.length && settings?.asrApiKey && settings?.llmApiKey) {
+        await process(out.created[0].id)
+      }
+    } catch (e) {
+      setError(readableError(e))
+    } finally {
+      setProgress(null)
+      setBusy(false)
+    }
+  }
+
+  async function createFromPaste() {
+    const text = pasteText.trim()
+    if (text.length < 4) return
+    const rec = await window.caoji.createFromText(text)
+    setPasteOpen(false)
+    setPasteText('')
+    if (!rec) return
+    await refresh()
+    setSelectedId(rec.id)
+    setView('records')
+    if (settings?.llmApiKey) await process(rec.id)
+  }
+
   const noKey = settings && (!settings.asrApiKey || !settings.llmApiKey)
+
+  const listItems = useMemo(() => {
+    if (!q.trim()) return records.map((r) => ({ rec: r, field: '', snippet: '' }))
+    return hits.map((h) => ({ rec: h.record, field: h.field, snippet: h.snippet }))
+  }, [q, records, hits])
 
   return (
     <div className="app">
@@ -194,8 +274,16 @@ export default function App() {
               <p className="source-hint">{SOURCES.find((s) => s.id === source)?.hint}</p>
               <button className="rec-btn" onClick={startRecording} disabled={busy}>
                 <span className="rec-dot" />
-                {busy ? '准备中…' : '开始录音'}
+                {busy ? '处理中…' : '开始录音'}
               </button>
+              <div className="mini-actions">
+                <button className="mini" onClick={doImport} disabled={busy} title="导入 mp3 / m4a / wav，或 txt / srt 文稿">
+                  导入文件
+                </button>
+                <button className="mini" onClick={() => setPasteOpen(true)} disabled={busy} title="把聊天记录、随手笔记贴进来整理">
+                  粘贴文字
+                </button>
+              </div>
             </>
           ) : (
             <>
@@ -207,11 +295,7 @@ export default function App() {
                 <div className="meter-fill" style={{ width: `${Math.round(level * 100)}%` }} />
               </div>
               <div className="rec-actions">
-                <button
-                  className="ghost"
-                  onClick={() => recRef.current?.mark()}
-                  title="标记重点时间点"
-                >
+                <button className="ghost" onClick={() => recRef.current?.mark()} title="标记重点时间点">
                   标记
                 </button>
                 <button className="stop-btn" onClick={stopRecording} disabled={busy}>
@@ -220,43 +304,75 @@ export default function App() {
               </div>
             </>
           )}
-          {error && <p className="err">{error}</p>}
-          {noKey && !recording && (
-            <p className="tip" onClick={() => setTab('settings')}>
-              还没填 API Key，录音后只保存不整理 →
-            </p>
-          )}
         </section>
 
-        <div className="list-head">
-          <span>记录</span>
-          <span className="count">{records.length}</span>
+        <nav className="nav">
+          <button className={`nav-item ${view === 'records' ? 'on' : ''}`} onClick={() => setView('records')}>
+            记录
+            <span className="nav-count">{records.length}</span>
+          </button>
+          <button className={`nav-item ${view === 'projects' ? 'on' : ''}`} onClick={() => setView('projects')}>
+            项目
+            <span className="nav-count">{projects.length}</span>
+          </button>
+          <button className={`nav-item ${view === 'schedule' ? 'on' : ''}`} onClick={() => setView('schedule')}>
+            日程
+            <span className="nav-count">{events.length}</span>
+          </button>
+        </nav>
+
+        <div className="search">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="搜索标题、原文、待办…"
+            spellCheck={false}
+          />
+          {q && (
+            <button className="search-clear" onClick={() => setQ('')} title="清空">
+              ×
+            </button>
+          )}
         </div>
 
         <div className="list">
-          {records.map((r) => (
+          {listItems.map(({ rec, field, snippet }) => (
             <button
-              key={r.id}
-              className={`item ${selectedId === r.id && tab === 'record' ? 'on' : ''}`}
+              key={rec.id}
+              className={`item ${selectedId === rec.id && view === 'records' ? 'on' : ''}`}
               onClick={() => {
-                setSelectedId(r.id)
-                setTab('record')
+                setSelectedId(rec.id)
+                setView('records')
               }}
             >
-              <div className="item-title">{r.title || '未命名'}</div>
-              <div className="item-meta">
-                <span>{fmtWhen(r.createdAt)}</span>
-                <span className="sep">·</span>
-                <span>{fmtClock(r.durationMs)}</span>
-                <span className={`badge s-${r.status}`}>{STATUS_TEXT[r.status] ?? r.status}</span>
+              <div className="item-title">
+                {rec.project && <span className="item-proj">{rec.project}</span>}
+                {rec.title || '未命名'}
               </div>
+              {field ? (
+                <div className="item-snippet">
+                  <span className="hit-field">{field}</span>
+                  {snippet}
+                </div>
+              ) : (
+                <div className="item-meta">
+                  <span>{fmtWhen(rec.createdAt)}</span>
+                  <span className="sep">·</span>
+                  <span>{rec.durationMs ? fmtClock(rec.durationMs) : '—'}</span>
+                  <span className={`badge s-${rec.status}`}>{STATUS_TEXT[rec.status] ?? rec.status}</span>
+                </div>
+              )}
             </button>
           ))}
-          {!records.length && <p className="empty-list">还没有记录。选好音源，点上面的按钮开始。</p>}
+          {!listItems.length && (
+            <p className="empty-list">
+              {q ? '没有匹配的记录' : '还没有记录。录一段、导入一个文件，或粘贴一段文字。'}
+            </p>
+          )}
         </div>
 
         <footer className="side-foot">
-          <button className={`link ${tab === 'settings' ? 'on' : ''}`} onClick={() => setTab('settings')}>
+          <button className={`link ${view === 'settings' ? 'on' : ''}`} onClick={() => setView('settings')}>
             设置
           </button>
           <button className="link" onClick={() => window.caoji.openDataDir()}>
@@ -266,42 +382,132 @@ export default function App() {
       </aside>
 
       <main className="main">
-        {tab === 'settings' ? (
+        {progress && (
+          <div className="progress-bar">
+            <span className="spin" />
+            <span>{progress.note}</span>
+            {progress.total > 0 && (
+              <span className="progress-frac">
+                {progress.current}/{progress.total}
+              </span>
+            )}
+          </div>
+        )}
+
+        {notice && <div className="toast">{notice}</div>}
+
+        {view === 'settings' ? (
           <SettingsPanel
             settings={settings}
             llmList={llmList}
             asrList={asrList}
             onSaved={(s) => setSettings(s)}
-            onClose={() => setTab('record')}
+            onClose={() => setView('records')}
+          />
+        ) : view === 'projects' ? (
+          <ProjectsView
+            records={records}
+            projects={projects}
+            busy={busy}
+            onRefresh={refresh}
+            onOpenRecord={(id) => {
+              setSelectedId(id)
+              setView('records')
+            }}
+          />
+        ) : view === 'schedule' ? (
+          <ScheduleView
+            records={records}
+            projects={projects}
+            events={events}
+            onRefresh={refresh}
+            onOpenRecord={(id) => {
+              setSelectedId(id)
+              setView('records')
+            }}
           />
         ) : selected ? (
           <Detail
             record={selected}
+            projects={projects}
             busy={busy}
-            onRun={(force) => runSelected(selected.id, force)}
+            onProcess={process}
             onChanged={refresh}
+            onGoSchedule={() => setView('schedule')}
           />
         ) : (
-          <div className="placeholder">
-            <h1>把听到的，变成能查到的</h1>
-            <p>
-              左侧选一个音源开始录音。选「系统声音」可以录下腾讯会议、飞书、微信语音、网课
-              —— 这些内容在手机上录不到，是 PC 端才有的能力。
-            </p>
-            <div className="steps">
-              <div>
-                <b>1</b> 录音
-              </div>
-              <div>
-                <b>2</b> 转写
-              </div>
-              <div>
-                <b>3</b> 摘要与待办
-              </div>
-            </div>
-          </div>
+          <Placeholder noKey={!!noKey} onImport={doImport} onPaste={() => setPasteOpen(true)} onSettings={() => setView('settings')} />
         )}
       </main>
+
+      {pasteOpen && (
+        <Modal title="粘贴文字整理" onClose={() => setPasteOpen(false)}>
+          <p className="modal-hint">
+            会议纪要、聊天记录、随手笔记都可以贴进来。配好 Key 后会直接出摘要、待办与项目归属。
+          </p>
+          <textarea
+            className="paste-area"
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder="在这里粘贴文字…"
+            autoFocus
+          />
+          <div className="modal-actions">
+            <button className="ghost" onClick={() => setPasteOpen(false)}>
+              取消
+            </button>
+            <button className="primary" onClick={createFromPaste} disabled={pasteText.trim().length < 4}>
+              加入并整理
+            </button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+function Placeholder({
+  noKey,
+  onImport,
+  onPaste,
+  onSettings,
+}: {
+  noKey: boolean
+  onImport: () => void
+  onPaste: () => void
+  onSettings: () => void
+}) {
+  return (
+    <div className="placeholder">
+      <h1>把听到的，变成能查到的</h1>
+      <p>
+        录一段、导入一个录音文件，或把文字贴进来。选「系统声音」可以录下腾讯会议、飞书、微信语音、网课
+        —— 这些内容在手机上录不到，是 PC 端才有的能力。
+      </p>
+      <div className="placeholder-actions">
+        <button className="primary" onClick={onImport}>
+          导入录音文件
+        </button>
+        <button className="ghost" onClick={onPaste}>
+          粘贴文字
+        </button>
+      </div>
+      <div className="steps">
+        <div>
+          <b>1</b> 录音或导入
+        </div>
+        <div>
+          <b>2</b> 转写与整理
+        </div>
+        <div>
+          <b>3</b> 纪要 · 待办 · 方案
+        </div>
+      </div>
+      {noKey && (
+        <p className="placeholder-tip" onClick={onSettings}>
+          还没填 API Key —— 现在能录音、能存、能看原文，但不会转写与整理。去设置 →
+        </p>
+      )}
     </div>
   )
 }

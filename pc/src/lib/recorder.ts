@@ -92,7 +92,9 @@ export class Recorder {
 
     const rec = new MediaRecorder(this.dest.stream, {
       mimeType: mime,
-      audioBitsPerSecond: 64000,
+      // 96k 而不是 64k：转写对辅音与远场说话更敏感，多出来的带宽在识别率上能看出来，
+      // 一小时也就多 14MB，与手机端 v1.24 起的设置一致
+      audioBitsPerSecond: 96000,
     })
     rec.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) this.chunks.push(e.data)

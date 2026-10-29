@@ -11,16 +11,42 @@ const api = {
   testLlm: () => ipcRenderer.invoke('settings:test-llm'),
 
   saveAudio: (bytes: ArrayBuffer, meta: unknown) => ipcRenderer.invoke('record:save-audio', bytes, meta),
+  createFromText: (text: string, title?: string) => ipcRenderer.invoke('record:create-from-text', text, title),
   list: () => ipcRenderer.invoke('record:list'),
   get: (id: string) => ipcRenderer.invoke('record:get', id),
   update: (id: string, patch: unknown) => ipcRenderer.invoke('record:update', id, patch),
   remove: (id: string) => ipcRenderer.invoke('record:delete', id),
   audioExists: (id: string) => ipcRenderer.invoke('record:audio-exists', id),
   audioBytes: (id: string) => ipcRenderer.invoke('record:audio-bytes', id),
-  run: (id: string, opts?: unknown) => ipcRenderer.invoke('ai:run', id, opts),
+  setTranscript: (id: string, text: string, meta?: unknown) =>
+    ipcRenderer.invoke('record:set-transcript', id, text, meta),
 
-  exportMarkdown: (id: string) => ipcRenderer.invoke('record:export-markdown', id),
-  markdown: (id: string) => ipcRenderer.invoke('record:markdown', id),
+  importPick: () => ipcRenderer.invoke('import:pick'),
+  importRun: (paths: string[]) => ipcRenderer.invoke('import:run', paths),
+
+  transcribe: (id: string) => ipcRenderer.invoke('record:transcribe', id),
+  asrChunk: (bytes: ArrayBuffer, fileName: string, mime: string) =>
+    ipcRenderer.invoke('asr:chunk', bytes, fileName, mime),
+
+  analyze: (id: string) => ipcRenderer.invoke('ai:analyze', id),
+  makeMinutes: (id: string) => ipcRenderer.invoke('ai:minutes', id),
+  makePlan: (id: string) => ipcRenderer.invoke('ai:plan', id),
+  cleanText: (id: string, opts?: { ai?: boolean }) => ipcRenderer.invoke('text:clean', id, opts),
+
+  search: (q: string) => ipcRenderer.invoke('search', q),
+
+  listProjects: () => ipcRenderer.invoke('project:list'),
+  saveProject: (p: unknown) => ipcRenderer.invoke('project:save', p),
+  removeProject: (id: string) => ipcRenderer.invoke('project:delete', id),
+
+  listEvents: () => ipcRenderer.invoke('event:list'),
+  saveEvent: (e: unknown) => ipcRenderer.invoke('event:save', e),
+  removeEvent: (id: string) => ipcRenderer.invoke('event:delete', id),
+
+  exportRecord: (id: string, format: 'md' | 'html') => ipcRenderer.invoke('export:record', id, format),
+  exportBatch: (ids: string[], format: 'md' | 'html') => ipcRenderer.invoke('export:batch', ids, format),
+  markdownOf: (id: string) => ipcRenderer.invoke('export:markdown-text', id),
+  copyText: (text: string) => ipcRenderer.invoke('clipboard:write', text),
 
   /** 返回取消订阅函数，组件卸载时务必调用，否则热更新会叠加监听 */
   onRecordChanged: (cb: (p: { id: string; status: string; error?: string }) => void) => {

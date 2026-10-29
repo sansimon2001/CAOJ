@@ -4,6 +4,9 @@ dist/
 .npm-cache/
 .shots/
 
+# 端到端测试临时造的音频与其脚本
+.tmp/
+
 # spike 跑出来的结果文件，每次都不一样，不入库
 spike/spike-result.json
 

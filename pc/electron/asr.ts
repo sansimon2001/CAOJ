@@ -2,6 +2,9 @@
 //
 // 走 Whisper 兼容协议（multipart/form-data + model + language + prompt）。
 // 语言因为各服务接受度不同，做了降级：用户选的 → 服务不接受就退回 zh → 仍失败就去掉 language。
+//
+// 长音频由渲染进程解码切片后逐片送进来（见 src/lib/audiodecode.ts），
+// 主进程这边只认「一段字节 + 文件名」，不关心它来自整文件还是第几片。
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -21,9 +24,15 @@ function guessMime(file: string): string {
   if (ext === '.wav') return 'audio/wav'
   if (ext === '.mp3') return 'audio/mpeg'
   if (ext === '.m4a') return 'audio/mp4'
-  if (ext === '.ogg') return 'audio/ogg'
+  if (ext === '.mp4') return 'audio/mp4'
+  if (ext === '.ogg' || ext === '.oga' || ext === '.opus') return 'audio/ogg'
+  if (ext === '.flac') return 'audio/flac'
+  if (ext === '.aac') return 'audio/aac'
+  if (ext === '.amr') return 'audio/amr'
   return 'application/octet-stream'
 }
+
+export const mimeOf = guessMime
 
 /** 选出这个服务商真正能接受的 language 取值；空串表示不传 */
 function resolveLang(want: string, provider: ReturnType<typeof asrById>): string {
@@ -35,18 +44,25 @@ function resolveLang(want: string, provider: ReturnType<typeof asrById>): string
   return ''
 }
 
-export async function transcribe(file: string, s: Settings): Promise<AsrOutcome> {
+/** 核心：把一段音频字节送去转写。整文件与切片都走这里。 */
+export async function transcribeBuffer(
+  buf: Uint8Array,
+  fileName: string,
+  mime: string,
+  s: Settings
+): Promise<AsrOutcome> {
   if (!s.asrUrl) return { ok: false, text: '', error: '还没有填写转写接口地址', usedLang: '' }
   if (!s.asrApiKey) return { ok: false, text: '', error: '还没有填写转写 API Key', usedLang: '' }
-  if (!fs.existsSync(file)) return { ok: false, text: '', error: `音频文件不存在：${file}`, usedLang: '' }
 
   const provider = asrById(s.asrProviderId)
-  const buf = new Uint8Array(await fs.promises.readFile(file))
   const lang = resolveLang(s.language, provider)
 
   async function attempt(withLang: string) {
+    // 注意：每次重试都要现造 FormData，复用会报 body already used
     const form = new FormData()
-    form.append('file', new Blob([buf], { type: guessMime(file) }), path.basename(file))
+    // TS 5.7 起 Uint8Array 带 ArrayBufferLike 泛型，与 Blob 的入参声明不兼容；
+    // 运行时两种类型 Blob 都接受，这里只做类型层面的断言
+    form.append('file', new Blob([buf as unknown as ArrayBuffer], { type: mime }), fileName)
     form.append('model', s.asrModel)
     if (withLang) form.append('language', withLang)
     // 只给支持热词的服务传 prompt，其余传了会被 400
@@ -85,11 +101,18 @@ export async function transcribe(file: string, s: Settings): Promise<AsrOutcome>
       text = out.raw
     }
     text = text.trim()
-    if (!text) return { ok: false, text: '', error: '服务返回了空文本（可能整段无人声）', usedLang: lang }
+    // 空文本不算失败：长音频里总有几段没人说话，交给上层跳过
     return { ok: true, text, error: '', usedLang: lang }
   } catch (e) {
     return { ok: false, text: '', error: `请求失败：${(e as Error).message}`, usedLang: '' }
   }
+}
+
+/** 整文件转写（短音频、以及切片解码失败时的兜底） */
+export async function transcribe(file: string, s: Settings): Promise<AsrOutcome> {
+  if (!fs.existsSync(file)) return { ok: false, text: '', error: `音频文件不存在：${file}`, usedLang: '' }
+  const buf = new Uint8Array(await fs.promises.readFile(file))
+  return transcribeBuffer(buf, path.basename(file), guessMime(file), s)
 }
 
 /** 把 HTTP 状态翻成「下一步该改什么」，而不是只丢一个数字 */
@@ -97,7 +120,7 @@ function describeHttp(status: number, raw: string): string {
   const snippet = raw.slice(0, 200)
   if (status === 401 || status === 403) return `Key 无效或没有权限（${status}）`
   if (status === 404) return `接口地址不对（404），检查是否少了 /audio/transcriptions`
-  if (status === 413) return '音频太大（413），录音过长请分段'
+  if (status === 413) return '音频太大（413），这一段超过了服务端上限'
   if (status === 429) return '额度用尽或请求过快（429）'
   return `转写失败（${status}）：${snippet}`
 }
