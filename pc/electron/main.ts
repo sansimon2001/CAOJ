@@ -58,6 +58,12 @@ import { recordToHtml, recordToMarkdown, safeFileName, writeBatch } from './expo
 const isDev = process.env.CAOJI_DEV === '1'
 const DEV_URL = process.env.CAOJI_DEV_URL || 'http://localhost:5273'
 
+// 数据目录钉死在 caoji-pc，不随显示名走。
+// app.getPath('userData') 由 app.getName() 推导，而安装包的显示名是「草记」——
+// 不钉这一下，装机版会去读写 %APPDATA%\草记，从源码跑时写在 %APPDATA%\caoji-pc，
+// 同一台机器上两份数据互不可见，看起来就像「记录丢了」。
+app.setName('caoji-pc')
+
 // 让自动化测试能在没有真实点击的情况下播放测试音（也避免用户手动场景下的自动播放拦截）
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 
@@ -150,11 +156,20 @@ function createWindow() {
     const w = win
     w.webContents.once('did-finish-load', () => {
       setTimeout(async () => {
+        // 结果同时落一个 <脚本>.out.json。
+        // 安装版是 GUI 进程，没有 stdout，只 console.log 的话结果就等于扔了。
+        const outFile = e2e + '.out.json'
         try {
           const code = fs.readFileSync(e2e, 'utf-8')
           const r = await w.webContents.executeJavaScript(code)
+          fs.writeFileSync(outFile, JSON.stringify(r, null, 2), 'utf-8')
           console.log('[e2e] 结果：' + JSON.stringify(r, null, 2))
         } catch (e) {
+          fs.writeFileSync(
+            outFile,
+            JSON.stringify({ error: e instanceof Error ? e.message : String(e) }, null, 2),
+            'utf-8'
+          )
           console.error('[e2e] 失败', e)
         } finally {
           app.quit()

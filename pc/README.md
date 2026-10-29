@@ -57,6 +57,28 @@ npm run build
 > 说明环境里被注入了 `ELECTRON_RUN_AS_NODE=1`，Electron 退化成了纯 Node。
 > `tools/launch.js` 已经处理了这种情况，直接用 `npm start` 即可。
 
+### 打安装包
+
+```bash
+npm run dist        # 产出 release/草记-<版本>-安装包.exe
+npm run dist:dir    # 只解包不封安装器，快，用来验证 asar 里有没有缺东西
+```
+
+首次打包要下 Electron 压缩包与 NSIS 工具链，国内网络建议先设镜像：
+
+```bash
+export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
+export ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/
+```
+
+三个和默认约定不同、值得记住的地方：
+
+1. **`build/` 是主进程产物目录，不是资源目录。** electron-builder 默认把 `build/` 当 buildResources 并从包里整个排除，照默认走会打出找不到 `build/main.js` 的空壳。所以 `electron-builder.yml` 里把 buildResources 改成了 `installer/`。
+2. **`productName` 只写在 `electron-builder.yml`，不写进 `package.json`。** Electron 用 `app.getName()` 推导 userData 目录，写进 package.json 会让装机版的数据目录从 `caoji-pc` 变成「草记」，用户升级后看着就像「记录全没了」。`main.ts` 里另外钉了一次 `app.setName('caoji-pc')` 兜底。
+3. **`nsis.installerIcon` 只收 `.ico`，不收 PNG。** 传 PNG 会报 `invalid icon file`；不写这项时 electron-builder 会用 `win.icon` 的 PNG 自动转一个 ico 出来，所以这里干脆不写。
+
+安装包不做代码签名，Windows 首次运行会弹 SmartScreen「未知发布者」，需要点「更多信息 → 仍要运行」。要消掉这个提示得买代码签名证书。
+
 ### 技术栈
 
 | 项 | 值 |
@@ -192,6 +214,10 @@ Key 存在本机，落盘前用系统级加密（Windows 走 DPAPI），换机�
 
 设置页有「打开数据目录」。整个 `data/` 拷走就是完整备份，换机器放回同一位置即可。
 
+这个位置在**源码运行和安装版之间是同一个**（`main.ts` 里把 `app.setName('caoji-pc')` 钉死了，
+不随安装包的显示名「草记」变），所以先用 `npm start` 试用、再装安装版，记录不会丢。
+卸载时也不会删掉这个目录。
+
 选这个存法而不是 SQLite，是因为逐条写文件不会出现「写到一半断电，整个库都坏了」，
 单条损坏最多损失一条。记录量到几千条时再换库也不迟，结构已经是平的。
 
@@ -221,6 +247,8 @@ pc/
 │   ├── lib/format.ts         时间与文案格式化
 │   └── views/                详情、项目、日程、设置
 ├── spike/                    系统内录可行性验证（独立可跑）
+├── installer/icon.png        应用图标（1024×1024，打包时自动转 ico）
+├── electron-builder.yml      安装包配置
 └── tools/                    启动脚本、模拟服务、端到端测试脚本
 ```
 
@@ -260,11 +288,31 @@ CAOJI_E2E="$(pwd)/tools/e2e-full.js" node tools/launch.js
 配合 `CAOJI_SHOT_CLICK`（CSS 选择器或 `js:` 开头的一小段脚本）与 `CAOJI_SHOT_SCROLL`（像素）
 可以截到指定视图与滚动位置。
 
+**同一套断言可以直接跑在安装版上**，这是验证「打包没打漏东西」最可靠的办法：
+
+```bash
+# 先卸掉旧目录，否则 electron-builder 会去删它
+npx electron-builder --win --x64 --dir
+
+CAOJI_E2E="$(pwd)/tools/e2e-full.js" "./release/win-unpacked/草记.exe"
+cat tools/e2e-full.js.out.json
+```
+
+安装版是 GUI 进程没有 stdout，所以结果除了打印还会落一份 `<脚本>.out.json`。
+实测 26 项同样全过 —— 这一步能抓住 asar 里缺依赖（比如忘带 music-metadata 就读不出时长）、
+路径写死成开发目录之类只在打包后才暴露的问题。
+
+清空测试数据用 `tools/wipe.js`，它走应用自己的删除接口，不直接动磁盘：
+
+```bash
+CAOJI_E2E="$(pwd)/tools/wipe.js" "./release/win-unpacked/草记.exe"
+```
+
 ---
 
 ## 十二、已知限制
 
-- **没有安装包**。要从源码跑（`npm start`）。要发给别人用，还需要接 electron-builder 出 exe。
+- **安装包没有代码签名**。能装能用，但首次运行会被 SmartScreen 拦一下（「更多信息 → 仍要运行」）。
 - **没有与手机端同步**。目前只能导出 Markdown / HTML 手动搬。
 - **docx 导出没做**。HTML 那份已经排好版，浏览器打开后「打印 → 另存为 PDF」即可，
   中文不掉字、表格与标题层级都保得住。

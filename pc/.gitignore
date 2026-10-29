@@ -7,6 +7,12 @@ dist/
 # 端到端测试临时造的音频与其脚本
 .tmp/
 
+# 打包产物（安装包 + 解包目录，一次 80MB+ 不进仓库）
+release/
+
+# e2e 结果文件。打包版是 GUI 进程没有 stdout，结果落在脚本旁边的 *.out.json
+*.out.json
+
 # spike 跑出来的结果文件，每次都不一样，不入库
 spike/spike-result.json
 

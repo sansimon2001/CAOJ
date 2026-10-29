@@ -1,8 +1,11 @@
 {
   "name": "caoji-pc",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "草记 PC 端 —— 录会议、转文字、整理成摘要与待办",
+  "author": {
+    "name": "wokaka"
+  },
   "main": "build/main.js",
   "scripts": {
     "dev": "node tools/dev.js",
@@ -10,7 +13,9 @@
     "build:web": "vite build",
     "build": "npm run build:main && npm run build:web",
     "start": "npm run build && node tools/launch.js",
-    "spike": "node tools/launch.js spike/main.js"
+    "spike": "node tools/launch.js spike/main.js",
+    "dist:dir": "npm run build && electron-builder --win --x64 --dir",
+    "dist": "npm run build && electron-builder --win --x64"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
@@ -18,12 +23,13 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "electron": "^31.7.7",
+    "electron-builder": "^26.18.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   },
   "dependencies": {
-    "music-metadata": "^7.14.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "music-metadata": "^7.14.0"
   }
 }

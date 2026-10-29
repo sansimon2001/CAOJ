@@ -1,0 +1,55 @@
+# 打包配置 —— 产出 Windows 安装包
+#
+# 两个地方和默认约定冲突，这里显式避开：
+#
+#   1. 默认的 buildResources 目录叫 build/，但本项目的 build/ 是 tsc 编译主进程的产物目录。
+#      electron-builder 会把 buildResources 整个从 app 里排除，照默认走就会打出一个
+#      找不到 build/main.js 的空壳。所以 buildResources 改成 installer/。
+#
+#   2. productName 故意不写进 package.json，只写在这里。
+#      Electron 用 app.getName() 决定 userData 目录，而这个值来自 package.json 的
+#      productName/name。写进 package.json 会让安装版的数据目录从 caoji-pc 变成「草记」，
+#      用户升级安装包后会发现「记录全没了」。main.ts 里另外还钉了一次 setName 兜底。
+
+appId: online.wokaka.caoji
+productName: 草记
+copyright: Copyright © 2026 wokaka
+
+directories:
+  buildResources: installer
+  output: release
+
+# 只放运行期真正要用的东西：主进程产物、界面产物、依赖声明。
+# 源码（electron/ src/）、测试脚本、tsconfig 都不进包。
+files:
+  - build/**/*
+  - dist/**/*
+  - package.json
+  - '!**/*.map'
+  - '!**/{.DS_Store,.git,.gitignore,README.md}'
+
+asar: true
+
+# music-metadata 纯 JS 无需 unpack；这里不设 asarUnpack，保持单文件整洁
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: installer/icon.png
+  artifactName: 草记-${version}-安装包.${ext}
+  # 让任务栏与「应用和功能」里显示中文名而不是 exe 名
+  legalTrademarks: 草记
+
+nsis:
+  # 不用一键安装：给用户自己选装到哪个盘，也方便看装了什么
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 草记
+  # 卸载时保留 %APPDATA%\caoji-pc —— 录音和记录是用户的劳动成果，不能跟着卸载走
+  deleteAppDataOnUninstall: false
+  language: '2052'
