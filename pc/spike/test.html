@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>loopback spike</title>
+</head>
+<body>
+<script>
+const { ipcRenderer } = require('electron')
+
+const say = (m) => console.log('[page] ' + m)
+
+// 在指定时长内反复采样，取 1kHz 附近 bin 的峰值与均值
+async function measure(analyser, targetBin, ms) {
+  const bins = new Uint8Array(analyser.frequencyBinCount)
+  const series = []
+  let peak = 0
+  const t0 = performance.now()
+  while (performance.now() - t0 < ms) {
+    await new Promise((r) => setTimeout(r, 40))
+    analyser.getByteFrequencyData(bins)
+    let localMax = 0
+    for (let i = targetBin - 2; i <= targetBin + 2; i++) {
+      if (bins[i] > localMax) localMax = bins[i]
+    }
+    if (localMax > peak) peak = localMax
+    series.push(localMax)
+  }
+  const mean = series.reduce((a, b) => a + b, 0) / series.length
+  return { peak, mean: Math.round(mean * 10) / 10, frames: series.length }
+}
+
+async function run() {
+  const out = { ok: false, notes: [] }
+
+  let stream = null
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+  } catch (e) {
+    out.notes.push('getDisplayMedia 抛错：' + (e && e.message))
+    return done(out)
+  }
+
+  const audioTracks = stream.getAudioTracks()
+  out.audioTracks = audioTracks.map((t) => ({
+    label: t.label, muted: t.muted, enabled: t.enabled, state: t.readyState,
+  }))
+  if (!audioTracks.length) {
+    out.notes.push('拿到了视频流但没有任何音频轨 → 该环境未开放 loopback')
+    return done(out)
+  }
+  stream.getVideoTracks().forEach((t) => t.stop())
+
+  const ctx = new AudioContext()
+  await ctx.resume()
+  out.sampleRate = ctx.sampleRate
+  out.ctxState = ctx.state
+
+  const src = ctx.createMediaStreamSource(new MediaStream([audioTracks[0]]))
+  const analyser = ctx.createAnalyser()
+  analyser.fftSize = 8192
+  analyser.smoothingTimeConstant = 0
+  src.connect(analyser)
+
+  const hzPerBin = ctx.sampleRate / analyser.fftSize
+  const targetBin = Math.round(1000 / hzPerBin)
+  out.hzPerBin = Math.round(hzPerBin * 100) / 100
+  out.targetBin = targetBin
+
+  // 阶段 A：不播音，取基线
+  const baseline = await measure(analyser, targetBin, 900)
+  out.baseline = baseline
+  say('基线 1kHz 峰值 ' + baseline.peak)
+
+  // 阶段 B：播 1kHz（低音量），再从 loopback 录回来
+  const osc = ctx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.value = 1000
+  const gain = ctx.createGain()
+  gain.gain.value = 0.08
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start()
+
+  const signal = await measure(analyser, targetBin, 1800)
+  out.signal = signal
+  try { osc.stop() } catch (_) {}
+  say('信号期 1kHz 峰值 ' + signal.peak)
+
+  const rise = signal.peak - baseline.peak
+  out.rise = rise
+  out.ok = signal.peak >= 110 && rise >= 45
+
+  if (out.ok) {
+    out.notes.push('系统内录可用：录到了自己播放的 1kHz，能量抬升 ' + rise)
+  } else if (signal.peak < 60) {
+    out.notes.push('全程几乎无能量：系统静音 / 无输出设备 / loopback 采到空设备')
+  } else {
+    out.notes.push('有能量但 1kHz 未显著抬升，判定不可靠')
+  }
+  done(out)
+}
+
+function done(out) {
+  try {
+    ipcRenderer.send('spike-result', out)
+  } catch (e) {
+    document.title = 'ERR ' + e.message
+  }
+}
+
+run()
+</script>
+</body>
+</html>
